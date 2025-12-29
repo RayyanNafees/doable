@@ -2,6 +2,7 @@
 
 # dependencies
 /node_modules
+/.venv
 /.pnp
 .pnp.*
 .yarn/*
@@ -15,7 +16,9 @@
 
 # next.js
 /.next/
+/.next-dev/
 /out/
+__pycache__
 
 # production
 /build
@@ -32,11 +35,9 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
-.venv
 *lock.json
 bun.lock
 # uv.lock
-__pycache__
 
 # vercel
 .vercel
