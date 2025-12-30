@@ -12,4 +12,4 @@ const UserSchema = new Schema({
   lifeGoals: [String],
 }, { timestamps: true });
 
-export const User = models.User || model('User', UserSchema);
+export const User =  model('User', UserSchema);

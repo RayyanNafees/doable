@@ -1,5 +1,5 @@
 import { GoogleGenAI } from "@google/genai"
-import "@/lib/models/connect"
+import connectDB from "@/lib/models/connect"
 import { Task } from "@/lib/models/Task"
 import { getOrCreateDefaultUser } from "@/app/actions/users"
 
@@ -118,6 +118,7 @@ Rules:
       durationMins: number;
     }
 
+    await connectDB()
     const newTask = await Task.create({
       ...task,
       userId: user._id,

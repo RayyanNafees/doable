@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { User } from "@/lib/models/User"
 import { z } from "zod"
+import connectDB from "@/lib/models/connect"
 
 const quizResultSchema = z.object({
   userId: z.string(),
@@ -13,6 +14,7 @@ const quizResultSchema = z.object({
 
 export async function submitPsychologyQuiz(data: z.infer<typeof quizResultSchema>) {
   try {
+    await connectDB()
 
 
     // In a real app, we'd process the quiz results to derive traits

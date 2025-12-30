@@ -8,4 +8,4 @@ const ProjectSchema = new Schema({
   assignedEmployees: [{ type: Types.ObjectId, ref: 'Employee' }]
 }, { timestamps: true });
 
-export const Project = models.Project || model('Project', ProjectSchema);
+export const Project =  model('Project', ProjectSchema);

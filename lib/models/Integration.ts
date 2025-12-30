@@ -7,4 +7,4 @@ const IntegrationSchema = new Schema({
   lastSyncedAt: { type: Date }
 }, { timestamps: true });
 
-export const Integration = models.Integration || model('Integration', IntegrationSchema);
+export const Integration =  model('Integration', IntegrationSchema);

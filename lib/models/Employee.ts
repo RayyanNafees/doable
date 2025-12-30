@@ -10,4 +10,4 @@ const EmployeeSchema = new Schema({
   pastCompletionRate: { type: Number, default: 0 }
 }, { timestamps: true });
 
-export const Employee = models.Employee || model('Employee', EmployeeSchema);
+export const Employee =  model('Employee', EmployeeSchema);

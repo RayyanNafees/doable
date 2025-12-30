@@ -1,36 +1,111 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Doable: AI Personal Productivity Agent
+### BMW Challenge Submission
 
-## Getting Started
+**DeepWiki & Advanced Documentation:** [https://deepwiki.com/RayyanNafees/doable](https://deepwiki.com/RayyanNafees/doable)
 
-First, run the development server:
+---
 
+## 🚀 Project Overview
+
+**Doable** is an intelligent, agentic assistant designed to redefine personal productivity. Built for the **BMW Challenge**, it goes beyond simple task tracking by integrating logical reasoning, psychological profiling, and external tools to act as a true partner in your workflow.
+
+Tailored to specific personas (Software Developer, Product Manager, Team Leader), Doable bridges the gap between intent ("Schedule a coding session") and action (Calendar booking + Task creation) using a dual-backend architecture of **Next.js 16** and a **Python MCP Server**.
+
+## 💡 Core Functionality
+
+*   **Natural Language Processing**: Doable interprets complex goals like *"Summarize my to-do list and estimate effort"* or *"Schedule a 2-hour coding session after lunch"* using Google Gemini 2.5.
+*   **Calendar Integration**: Two-way sync with Google Calendar to manage schedules effectively.
+*   **Task Management**: Maintains "long-term memory" of tasks, handling priority ranking and deadlines automatically.
+*   **Conversational Interface**: A human-like assistant that provides status updates, motivation, and reasoning.
+*   **MCP Integration**: Exposes the agent's capabilities as a **Model Context Protocol (MCP) Server** (`api/mcp_server.py`).
+
+## 🌟 Unique Features
+
+Doable implements several innovative features to boost productivity and motivation:
+
+-   **🧠 Psychology-Driven (Ikigai)**:
+    -   Users take a psychology quiz during onboarding to identify their "Ikigai" (Reason for being).
+    -   The AI uses this profile to explain the "Why" behind every task, making even mundane work feel meaningful.
+-   **⏳ Reverse Pomodoro**:
+    -   For tasks delayed by 1-2 days, Doable activates a unique timer: **Work 5 mins, Rest 20 mins**. This lowers the barrier to entry to get you started.
+-   **🧩 Smart Task Breakdown**:
+    -   Automatically decomposes large, vague tasks into actionable 5-minute sub-steps.
+-   **⚖️ Automatic Eisenhower Matrix**:
+    -   Uses psychological data and task metadata to auto-sort tasks into: *Do First, Schedule, Delegate, Don't Do*.
+-   **🏢 Automated Project Planning**:
+    -   Companies can input a raw project plan; Doable generates all required tasks and recommends the best employees based on their psychology and completion history.
+-   **🔗 Ecosystem Integrations**:
+    -   **Email**: Automatically creates tasks from flagged emails.
+    -   **Tools**: Syncs with ClickUp and Todoist.
+-   **🔔 Motivational Notifications**:
+    -   Smart notifications for ignored tasks, featuring quotes and impact analysis: *"Skipping this task delays your goal of becoming a Senior Dev by 2 weeks."*
+
+## 🎯 Bonus Objectives Achieved
+
+*   **Self-Reflection**: The agent verifies its own actions (e.g., "Did I successfully book the meeting?") using the `reflect_on_task` tool.
+*   **AI Observability (Langfuse)**: Full integration with **Langfuse** for tracing agent thought processes, monitoring token usage, and debugging complex reasoning steps.
+
+## 🛠️ Technical Architecture
+
+### Tech Stack
+*   **Frontend**: Next.js 16 (App Router), React 19, Tailwind CSS v4, Shadcn/UI.
+*   **AI Engine**: Google Gemini 2.5 Flash (via Vercel AI SDK v5).
+*   **Agent Server**: Python FastMCP (Model Context Protocol).
+*   **Database**: MongoDB (Mongoose) for flexible document storage.
+*   **Observability**: Langfuse (OpenTelemetry).
+
+### Project Structure
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+d:\web\doable
+├── app/                  # Next.js App Router
+│   ├── api/ai/           # AI Routes (Chat, Process)
+│   └── dashboard/        # Main User Interface
+├── api/                  # Python MCP Server (Agent Logic)
+│   └── mcp_server.py     # FastMCP Implementation
+├── components/           # React Components (Shadcn)
+├── lib/                  # Utilities & Models
+│   ├── models/           # Mongoose Schemas (User, Task, Project)
+│   └── ai/               # AI Prompts & Logic
+└── docs/                 # Documentation & Slides
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🔧 Getting Started
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Prerequisites
+*   Node.js 18+ & Python 3.10+
+*   MongoDB Instance
+*   Google AI Studio API Key
+*   Langfuse API Keys
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Installation
 
-## Learn More
+1.  **Clone the repository**
+    ```bash
+    git clone https://github.com/RayyanNafees/doable.git
+    cd doable
+    ```
 
-To learn more about Next.js, take a look at the following resources:
+2.  **Install Frontend Dependencies**
+    ```bash
+    npm install
+    ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3.  **Setup Environment Variables**
+    Create a `.env` file:
+    ```env
+    GOOGLE_API_KEY=your_key
+    MONGO_URI=your_mongo_uri
+    LANGFUSE_PUBLIC_KEY=pk-lf-...
+    LANGFUSE_SECRET_KEY=sk-lf-...
+    ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+4.  **Run Development Server**
+    ```bash
+    npm run dev
+    ```
+    Open [http://localhost:3000](http://localhost:3000).
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**Submitted for the BMW Challenge**
+*Focused on: Context tracking, reasoning, tool orchestration, NLU, and time management logic.*

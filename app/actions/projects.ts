@@ -4,13 +4,14 @@ import { z } from "zod"
 import { revalidatePath } from "next/cache"
 import { Project } from "@/lib/models/Project"
 import { projectSchema, type ProjectFormData } from "@/lib/schemas/project"
-import "@/lib/models/connect"
+import connectDB from "@/lib/models/connect"
 import { ActionResult, Project as ProjectType } from "@/lib/types"
 import { getOrCreateDefaultUser } from "./users"
 import { serialize } from "@/lib/utils"
 
 export async function getProjects(): Promise<ActionResult<ProjectType[]>> {
   try {
+    await connectDB()
     const projects = await Project.find({})
       .populate("userId", "email")
       .populate("assignedEmployees", "name")
@@ -24,6 +25,7 @@ export async function getProjects(): Promise<ActionResult<ProjectType[]>> {
 
 export async function getProjectById(id: string): Promise<ActionResult<ProjectType>> {
   try {
+    await connectDB()
     const project = await Project.findById(id)
       .populate("userId", "email")
       .populate("assignedEmployees", "name")
@@ -40,6 +42,7 @@ export async function getProjectById(id: string): Promise<ActionResult<ProjectTy
 
 export async function createProject(data: ProjectFormData): Promise<ActionResult<ProjectType>> {
   try {
+    await connectDB()
     const validated = projectSchema.parse(data)
     if (!validated.userId) {
       const defaultUser = await getOrCreateDefaultUser()
@@ -61,6 +64,7 @@ export async function createProject(data: ProjectFormData): Promise<ActionResult
 export async function updateProject(id: string, data: Partial<ProjectFormData>): Promise<ActionResult<ProjectType>> {
   try {
     const validated = projectSchema.partial().parse(data)
+    await connectDB()
     const project = await Project.findByIdAndUpdate(id, validated, { new: true })
     if (!project) {
       return { success: false, error: "Project not found" }
@@ -79,13 +83,14 @@ export async function updateProject(id: string, data: Partial<ProjectFormData>):
 
 export async function deleteProject(id: string): Promise<ActionResult<void>> {
   try {
+    await connectDB()
     const project = await Project.findByIdAndDelete(id)
     if (!project) {
       return { success: false, error: "Project not found" }
     }
     revalidatePath("/dashboard/projects")
     return { success: true, data: undefined as void }
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error deleting project:", error)
     return { success: false, error: "Failed to delete project" }
   }

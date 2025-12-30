@@ -4,7 +4,7 @@ import { z } from "zod"
 import { revalidatePath } from "next/cache"
 import { Task } from "@/lib/models/Task"
 import { taskSchema, type TaskFormData } from "@/lib/schemas/task"
-import "@/lib/models/connect"
+import connectDB from "@/lib/models/connect"
 import { ActionResult, Task as TaskType } from "@/lib/types"
 import { google } from "@ai-sdk/google"
 import { generateObject } from "ai"
@@ -26,6 +26,7 @@ const enrichmentSchema = z.object({
 
 export async function getTasks(): Promise<ActionResult<TaskType[]>> {
   try {
+    await connectDB()
     const tasks = await Task.find({})
       .populate("userId", "email")
       .populate("projectId", "title")
@@ -39,6 +40,7 @@ export async function getTasks(): Promise<ActionResult<TaskType[]>> {
 
 export async function getTaskById(id: string): Promise<ActionResult<TaskType>> {
   try {
+    await connectDB()
     const task = await Task.findById(id)
       .populate("userId", "email")
       .populate("projectId", "title")
@@ -55,6 +57,7 @@ export async function getTaskById(id: string): Promise<ActionResult<TaskType>> {
 
 export async function createTask(data: TaskFormData): Promise<ActionResult<TaskType>> {
   try {
+    await connectDB()
     const validated = taskSchema.parse(data)
     let finalData = { ...validated }
 
@@ -123,6 +126,7 @@ export async function createTask(data: TaskFormData): Promise<ActionResult<TaskT
 export async function updateTask(id: string, data: Partial<TaskFormData>): Promise<ActionResult<TaskType>> {
   try {
     const validated = taskSchema.partial().parse(data)
+    await connectDB()
     const task = await Task.findByIdAndUpdate(id, validated, { new: true })
     if (!task) {
       return { success: false, error: "Task not found" }
@@ -140,6 +144,7 @@ export async function updateTask(id: string, data: Partial<TaskFormData>): Promi
 
 export async function deleteTask(id: string): Promise<ActionResult<void>> {
   try {
+    await connectDB()
     const task = await Task.findByIdAndDelete(id)
     if (!task) {
       return { success: false, error: "Task not found" }
@@ -154,6 +159,7 @@ export async function deleteTask(id: string): Promise<ActionResult<void>> {
 
 export async function generateSubsteps(taskId: string): Promise<ActionResult<void>> {
   try {
+    await connectDB()
     const task = await Task.findById(taskId)
     if (!task) return { success: false, error: "Task not found" }
 

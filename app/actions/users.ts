@@ -4,12 +4,13 @@ import { z } from "zod"
 import { revalidatePath } from "next/cache"
 import { User } from "@/lib/models/User"
 import { userSchema, type UserFormData } from "@/lib/schemas/user"
-import "@/lib/models/connect"
+import connectDB from "@/lib/models/connect"
 import { ActionResult, User as UserType } from "@/lib/types"
 import { serialize } from "@/lib/utils"
 
 export async function getUsers(): Promise<ActionResult<UserType[]>> {
   try {
+    await connectDB()
     const users = await User.find({}).lean()
     return { success: true, data: serialize(users) as unknown as UserType[] }
   } catch (error) {
@@ -20,6 +21,7 @@ export async function getUsers(): Promise<ActionResult<UserType[]>> {
 
 export async function getUserById(id: string): Promise<ActionResult<UserType>> {
   try {
+    await connectDB()
     const user = await User.findById(id).lean()
     if (!user) {
       return { success: false, error: "User not found" }
@@ -34,6 +36,7 @@ export async function getUserById(id: string): Promise<ActionResult<UserType>> {
 export async function createUser(data: UserFormData): Promise<ActionResult<UserType>> {
   try {
     const validated = userSchema.parse(data)
+    await connectDB()
     const user = await User.create(validated)
     revalidatePath("/dashboard/users")
     return { success: true, data: serialize(user.toObject()) as unknown as UserType }
@@ -50,6 +53,7 @@ export async function createUser(data: UserFormData): Promise<ActionResult<UserT
 export async function updateUser(id: string, data: Partial<UserFormData>): Promise<ActionResult<UserType>> {
   try {
     const validated = userSchema.partial().parse(data)
+    await connectDB()
     const user = await User.findByIdAndUpdate(id, validated, { new: true })
     if (!user) {
       return { success: false, error: "User not found" }
@@ -67,20 +71,28 @@ export async function updateUser(id: string, data: Partial<UserFormData>): Promi
 }
 
 export async function getOrCreateDefaultUser(): Promise<UserType> {
-  const users = await User.find({}).lean()
-  if (users.length > 0) {
-    return serialize(users[0]) as unknown as UserType
-  }
+  try {
+    await connectDB()
+    const users = await User.find({}).lean()
+    if (users.length > 0) {
+      return serialize(users[0]) as unknown as UserType
+    }
 
-  const newUser = await User.create({
-    email: "user@doable.ai",
-    persona: "Other",
-  })
-  return serialize(newUser.toObject()) as unknown as UserType
+    const newUser = await User.create({
+      email: "user@doable.ai",
+      persona: "Other",
+    })
+    return serialize(newUser.toObject()) as unknown as UserType
+  } catch (error) {
+    console.error("Error in getOrCreateDefaultUser:", error)
+    // Return a mock user or throw a more handled error if critical
+    throw new Error("Database connection failed during default user retrieval")
+  }
 }
 
 export async function deleteUser(id: string): Promise<ActionResult<void>> {
   try {
+    await connectDB()
     const user = await User.findByIdAndDelete(id)
     if (!user) {
       return { success: false, error: "User not found" }
