@@ -9,6 +9,7 @@ import { google } from "@ai-sdk/google"
 import { generateObject } from "ai"
 import { User } from "@/lib/models/User"
 import { getOrCreateDefaultUser } from "./users"
+import { serialize } from "@/lib/utils"
 
 const enrichmentSchema = z.object({
   eisenhowerQuadrant: z.enum([
@@ -28,7 +29,7 @@ export async function getTasks(): Promise<ActionResult<TaskType[]>> {
       .populate("userId", "email")
       .populate("projectId", "title")
       .lean()
-    return { success: true, data: tasks as unknown as TaskType[] }
+    return { success: true, data: serialize(tasks) as unknown as TaskType[] }
   } catch (error) {
     console.error("Error fetching tasks:", error)
     return { success: false, error: "Failed to fetch tasks" }
@@ -44,7 +45,7 @@ export async function getTaskById(id: string): Promise<ActionResult<TaskType>> {
     if (!task) {
       return { success: false, error: "Task not found" }
     }
-    return { success: true, data: task as unknown as TaskType }
+    return { success: true, data: serialize(task) as unknown as TaskType }
   } catch (error) {
     console.error("Error fetching task:", error)
     return { success: false, error: "Failed to fetch task" }
@@ -82,6 +83,15 @@ export async function createTask(data: TaskFormData): Promise<ActionResult<TaskT
             2. Estimate effort in minutes (default to 15 if unsure).
             3. Write a 1-sentence "Why" explaining the impact of this task on their life goals.
             `,
+            experimental_telemetry: {
+              isEnabled: true,
+              functionId: 'task-enrichment',
+              metadata: {
+                userId: finalData.userId?.toString(),
+                hasIkigai: !!user.ikigai,
+                environment: process.env.NODE_ENV || 'development',
+              },
+            },
           })
 
           finalData = {
@@ -98,8 +108,8 @@ export async function createTask(data: TaskFormData): Promise<ActionResult<TaskT
 
     const task = await Task.create(finalData)
     revalidatePath("/dashboard")
-    return { success: true, data: task as unknown as TaskType }
-  } catch (error: any) {
+    return { success: true, data: serialize(task) as unknown as TaskType }
+  } catch (error: unknown) {
     console.error("Error creating task:", error)
     if (error instanceof z.ZodError) {
       const firstError = error.issues?.[0]?.message
@@ -117,8 +127,8 @@ export async function updateTask(id: string, data: Partial<TaskFormData>): Promi
       return { success: false, error: "Task not found" }
     }
     revalidatePath("/dashboard")
-    return { success: true, data: task as unknown as TaskType }
-  } catch (error: any) {
+    return { success: true, data: serialize(task) as unknown as TaskType }
+  } catch (error: unknown) {
     console.error("Error updating task:", error)
     if (error instanceof z.ZodError) {
       return { success: false, error: error.issues[0].message }
@@ -164,6 +174,14 @@ export async function generateSubsteps(taskId: string): Promise<ActionResult<voi
         2. Make them concrete and actionable (e.g., "Open file", "Write function signature", "Add error handling").
         3. Generate 3-10 steps depending on complexity.
       `,
+      experimental_telemetry: {
+        isEnabled: true,
+        functionId: 'generate-substeps',
+        metadata: {
+          taskId: taskId,
+          environment: process.env.NODE_ENV || 'development',
+        },
+      },
     })
 
     task.substeps = object.substeps.map(s => ({ ...s, isCompleted: false }))

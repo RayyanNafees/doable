@@ -4,18 +4,18 @@ import { getProjects } from "@/app/actions/projects"
 import { ProjectDialog } from "./project-dialog"
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
-import { getUsers } from "@/app/actions/users"
+
 import { getEmployees } from "@/app/actions/employees"
 
-import { Project, User, Employee } from "@/lib/types"
+import { Project, Employee } from "@/lib/types"
 
 export default async function ProjectsManagePage() {
   const projectsResult = await getProjects()
-  const usersResult = await getUsers()
+
   const employeesResult = await getEmployees()
 
   const projects = (projectsResult.success ? projectsResult.data : []) as Project[]
-  const users = (usersResult.success ? usersResult.data : []) as User[]
+
   const employees = (employeesResult.success ? employeesResult.data : []) as Employee[]
 
   return (
@@ -28,7 +28,7 @@ export default async function ProjectsManagePage() {
               Manage your team projects and assignments.
             </p>
           </div>
-          <ProjectDialog userIds={users} employeeIds={employees}>
+          <ProjectDialog employeeIds={employees}>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
               Add Project

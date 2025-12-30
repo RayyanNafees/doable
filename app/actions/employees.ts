@@ -5,12 +5,13 @@ import { revalidatePath } from "next/cache"
 import { Employee } from "@/lib/models/Employee"
 import { employeeSchema, type EmployeeFormData } from "@/lib/schemas/employee"
 import { ActionResult, Employee as EmployeeType } from "@/lib/types"
+import { serialize } from "@/lib/utils"
 
 export async function getEmployees(): Promise<ActionResult<EmployeeType[]>> {
   try {
 
     const employees = await Employee.find({}).lean()
-    return { success: true, data: employees as unknown as EmployeeType[] }
+    return { success: true, data: serialize(employees) as unknown as EmployeeType[] }
   } catch (error) {
     console.error("Error fetching employees:", error)
     return { success: false, error: "Failed to fetch employees" }
@@ -24,7 +25,7 @@ export async function getEmployeeById(id: string): Promise<ActionResult<Employee
     if (!employee) {
       return { success: false, error: "Employee not found" }
     }
-    return { success: true, data: employee as unknown as EmployeeType }
+    return { success: true, data: serialize(employee) as unknown as EmployeeType }
   } catch (error) {
     console.error("Error fetching employee:", error)
     return { success: false, error: "Failed to fetch employee" }
@@ -37,8 +38,8 @@ export async function createEmployee(data: EmployeeFormData): Promise<ActionResu
     const validated = employeeSchema.parse(data)
     const employee = await Employee.create(validated)
     revalidatePath("/employees")
-    return { success: true, data: employee as unknown as EmployeeType }
-  } catch (error: any) {
+    return { success: true, data: serialize(employee) as unknown as EmployeeType }
+  } catch (error: unknown) {
     console.error("Error creating employee:", error)
     if (error instanceof z.ZodError) {
       const firstError = error.issues?.[0]?.message
@@ -57,8 +58,8 @@ export async function updateEmployee(id: string, data: Partial<EmployeeFormData>
       return { success: false, error: "Employee not found" }
     }
     revalidatePath("/employees")
-    return { success: true, data: employee as unknown as EmployeeType }
-  } catch (error: any) {
+    return { success: true, data: serialize(employee) as unknown as EmployeeType }
+  } catch (error: unknown) {
     console.error("Error updating employee:", error)
     if (error instanceof z.ZodError) {
       const firstError = error.issues?.[0]?.message

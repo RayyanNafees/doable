@@ -27,7 +27,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 
-import { Project, User, Employee } from "@/lib/types"
+import { Project, User } from "@/lib/types"
 
 function ActionCell({ project }: { project: Project }) {
   const [mounted, setMounted] = useState(false)
@@ -66,7 +66,11 @@ function ActionCell({ project }: { project: Project }) {
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <ProjectDialog defaultValues={project}>
+          <ProjectDialog defaultValues={{
+            ...project,
+            userId: typeof project.userId === 'object' ? project.userId._id : project.userId,
+            assignedEmployees: project.assignedEmployees?.map(e => typeof e === 'object' ? e._id : e) as string[]
+          }}>
             <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
               <Pencil className="mr-2 h-4 w-4" />
               Edit

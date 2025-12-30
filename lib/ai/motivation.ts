@@ -17,6 +17,15 @@ export async function generateMotivation(task: Task, user: User) {
 
         Generate a short, punchy, and highly motivational quote (1-2 sentences) that reminds the user WHY this task matters to their life goals and how completing it impacts their future.
       `,
+      experimental_telemetry: {
+        isEnabled: true,
+        functionId: 'generate-motivation',
+        metadata: {
+          taskId: task._id?.toString(),
+          userId: user._id?.toString(),
+          environment: process.env.NODE_ENV || 'development',
+        },
+      },
     })
 
     return text

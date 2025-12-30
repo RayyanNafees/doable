@@ -28,7 +28,78 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Checkbox } from "@/components/ui/checkbox"
 
-import { Task, User, Project } from "@/lib/types"
+import { Task, User } from "@/lib/types"
+
+const ActionCell = ({ task }: { task: Task }) => {
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const router = useRouter()
+
+  const handleDelete = async () => {
+    const result = await deleteTask(task._id)
+    if (result.success) {
+      router.refresh()
+    }
+    setDeleteDialogOpen(false)
+  }
+
+  return (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="h-8 w-8 p-0">
+            <span className="sr-only">Open menu</span>
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <TaskDialog
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            defaultValues={{
+              ...task,
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              userId: typeof task.userId === 'object' ? (task.userId as any)._id : task.userId,
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              projectId: typeof task.projectId === 'object' ? (task.projectId as any)?._id : task.projectId,
+              dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
+              lastDelayedAt: task.lastDelayedAt ? new Date(task.lastDelayedAt) : undefined,
+            } as any}
+          >
+            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+              <Pencil className="mr-2 h-4 w-4" />
+              Edit
+            </DropdownMenuItem>
+          </TaskDialog>
+          <DropdownMenuItem
+            onClick={() => setDeleteDialogOpen(true)}
+            className="text-destructive"
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            Delete
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the task.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  )
+}
 
 export const columns: ColumnDef<Task>[] = [
   {
@@ -117,66 +188,7 @@ export const columns: ColumnDef<Task>[] = [
   },
   {
     id: "actions",
-    cell: ({ row }) => {
-      const task = row.original
-      const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-      const router = useRouter()
-
-      const handleDelete = async () => {
-        const result = await deleteTask(task._id)
-        if (result.success) {
-          router.refresh()
-        }
-        setDeleteDialogOpen(false)
-      }
-
-      return (
-        <>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <TaskDialog defaultValues={task}>
-                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                  <Pencil className="mr-2 h-4 w-4" />
-                  Edit
-                </DropdownMenuItem>
-              </TaskDialog>
-              <DropdownMenuItem
-                onClick={() => setDeleteDialogOpen(true)}
-                className="text-destructive"
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This action cannot be undone. This will permanently delete the task.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
-                  Delete
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </>
-      )
-    },
+    cell: ({ row }) => <ActionCell task={row.original} />,
   },
 ]
 

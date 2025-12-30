@@ -31,7 +31,8 @@ interface UserFormProps {
 
 export function UserForm({ defaultValues, onSubmit, onCancel }: UserFormProps) {
   const form = useForm<UserFormData>({
-    resolver: zodResolver(userSchema),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: zodResolver(userSchema) as any,
     defaultValues: {
       email: "",
       persona: "Other",
@@ -39,7 +40,8 @@ export function UserForm({ defaultValues, onSubmit, onCancel }: UserFormProps) {
       psychology: {},
       lifeGoals: [],
       ...defaultValues,
-    },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any,
   })
 
   const handleSubmit = async (data: UserFormData) => {
@@ -60,7 +62,7 @@ export function UserForm({ defaultValues, onSubmit, onCancel }: UserFormProps) {
                 <Input type="email" placeholder="user@example.com" {...field} />
               </FormControl>
               <FormDescription>
-                User's email address (must be unique)
+                User&apos;s email address (must be unique)
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -87,7 +89,7 @@ export function UserForm({ defaultValues, onSubmit, onCancel }: UserFormProps) {
                 </SelectContent>
               </Select>
               <FormDescription>
-                User's role or persona type
+                User&apos;s role or persona type
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -102,13 +104,13 @@ export function UserForm({ defaultValues, onSubmit, onCancel }: UserFormProps) {
               <FormLabel>Ikigai</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="User's Ikigai summary..."
+                  placeholder="User&apos;s Ikigai summary..."
                   className="resize-none"
                   {...field}
                 />
               </FormControl>
               <FormDescription>
-                User's Ikigai summary (purpose in life)
+                User&apos;s Ikigai summary (purpose in life)
               </FormDescription>
               <FormMessage />
             </FormItem>

@@ -18,10 +18,11 @@ import { toast } from "sonner"
 interface TaskDialogProps {
   children: React.ReactNode
   defaultValues?: Partial<TaskFormData>
+  userIds?: Array<{ _id: string; email: string }>
   projectIds?: Array<{ _id: string; title: string }>
 }
 
-export function TaskDialog({ children, defaultValues, projectIds = [] }: TaskDialogProps) {
+export function TaskDialog({ children, defaultValues, userIds = [], projectIds = [] }: TaskDialogProps) {
   const [open, setOpen] = useState(false)
   const router = useRouter()
   const isEdit = !!defaultValues?._id
@@ -68,6 +69,7 @@ export function TaskDialog({ children, defaultValues, projectIds = [] }: TaskDia
           defaultValues={defaultValues}
           onSubmit={handleSubmit}
           onCancel={() => setOpen(false)}
+          userIds={userIds}
           projectIds={projectIds}
         />
       </DialogContent>

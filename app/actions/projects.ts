@@ -6,6 +6,7 @@ import { Project } from "@/lib/models/Project"
 import { projectSchema, type ProjectFormData } from "@/lib/schemas/project"
 import { ActionResult, Project as ProjectType } from "@/lib/types"
 import { getOrCreateDefaultUser } from "./users"
+import { serialize } from "@/lib/utils"
 
 export async function getProjects(): Promise<ActionResult<ProjectType[]>> {
   try {
@@ -13,7 +14,7 @@ export async function getProjects(): Promise<ActionResult<ProjectType[]>> {
       .populate("userId", "email")
       .populate("assignedEmployees", "name")
       .lean()
-    return { success: true, data: projects as unknown as ProjectType[] }
+    return { success: true, data: serialize(projects) as unknown as ProjectType[] }
   } catch (error) {
     console.error("Error fetching projects:", error)
     return { success: false, error: "Failed to fetch projects" }
@@ -29,7 +30,7 @@ export async function getProjectById(id: string): Promise<ActionResult<ProjectTy
     if (!project) {
       return { success: false, error: "Project not found" }
     }
-    return { success: true, data: project as unknown as ProjectType }
+    return { success: true, data: serialize(project) as unknown as ProjectType }
   } catch (error) {
     console.error("Error fetching project:", error)
     return { success: false, error: "Failed to fetch project" }
@@ -45,8 +46,8 @@ export async function createProject(data: ProjectFormData): Promise<ActionResult
     }
     const project = await Project.create(validated)
     revalidatePath("/dashboard/projects")
-    return { success: true, data: project as unknown as ProjectType }
-  } catch (error: any) {
+    return { success: true, data: serialize(project) as unknown as ProjectType }
+  } catch (error: unknown) {
     console.error("Error creating project:", error)
     if (error instanceof z.ZodError) {
       const firstError = error.issues?.[0]?.message
@@ -64,8 +65,8 @@ export async function updateProject(id: string, data: Partial<ProjectFormData>):
       return { success: false, error: "Project not found" }
     }
     revalidatePath("/dashboard/projects")
-    return { success: true, data: project as unknown as ProjectType }
-  } catch (error: any) {
+    return { success: true, data: serialize(project) as unknown as ProjectType }
+  } catch (error: unknown) {
     console.error("Error updating project:", error)
     if (error instanceof z.ZodError) {
       const firstError = error.issues?.[0]?.message

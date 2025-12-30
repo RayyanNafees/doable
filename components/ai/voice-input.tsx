@@ -2,9 +2,10 @@
 
 import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
-import { Mic, Square, Loader2 } from "lucide-react"
+import { Mic, Square, Loader2, Sparkles } from "lucide-react"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
+import { motion, AnimatePresence } from "framer-motion"
 
 export function VoiceInput() {
   const [isRecording, setIsRecording] = useState(false)
@@ -47,19 +48,20 @@ export function VoiceInput() {
     try {
       const formData = new FormData()
       formData.append("audio", blob)
-      formData.append("userContext", JSON.stringify({})) // Mock context for now, can be expanded
+      formData.append("userContext", JSON.stringify({}))
 
       const response = await fetch("/api/ai/process-goal", {
         method: "POST",
-        body: formData, // fetch automatically sets Content-Type to multipart/form-data
+        body: formData,
       })
 
       const data = await response.json()
       if (data.error) throw new Error(data.error)
 
-      toast.success(`Task Created: ${data.task.title}`)
+      toast.success(`Task Created: ${data.task.title}`, {
+        icon: <Sparkles className="h-4 w-4 text-yellow-500" />,
+      })
 
-      // Play the audio response
       if (data.audio) {
         const audio = new Audio(`data:audio/wav;base64,${data.audio}`)
         audio.play()
@@ -76,32 +78,79 @@ export function VoiceInput() {
   }
 
   return (
-    <div className="flex items-center gap-2">
-      {isRecording ? (
+    <div className="flex items-center gap-3">
+      <div className="relative flex items-center">
+        <AnimatePresence>
+          {isRecording && (
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: [1, 1.5, 1], opacity: [0.1, 0.3, 0.1] }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+              className="absolute inset-0 z-0 rounded-full bg-red-500"
+            />
+          )}
+        </AnimatePresence>
+
         <Button
-          variant="destructive"
+          variant={isRecording ? "destructive" : "secondary"}
           size="icon"
-          onClick={stopRecording}
-          className="animate-pulse"
-        >
-          <Square className="h-4 w-4" />
-        </Button>
-      ) : (
-        <Button
-          variant="secondary"
-          size="icon"
-          onClick={startRecording}
+          onClick={isRecording ? stopRecording : startRecording}
           disabled={isProcessing}
+          className={`relative z-10 h-10 w-10 rounded-full shadow-lg transition-all duration-300 ${isRecording ? "scale-110 ring-2 ring-red-500 ring-offset-2" : "hover:scale-105"
+            } ${isProcessing ? "opacity-90" : ""}`}
         >
           {isProcessing ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Loader2 className="h-5 w-5 animate-spin" />
+          ) : isRecording ? (
+            <Square className="h-4 w-4 fill-current" />
           ) : (
-            <Mic className="h-4 w-4" />
+            <Mic className="h-5 w-5" />
           )}
         </Button>
-      )}
-      {isRecording && <span className="text-xs font-medium text-destructive">Recording...</span>}
-      {isProcessing && <span className="text-xs font-medium text-muted-foreground">AI is thinking...</span>}
+      </div>
+
+      <AnimatePresence mode="wait">
+        {isRecording && (
+          <motion.div
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -10 }}
+            className="flex items-center gap-2 overflow-hidden whitespace-nowrap"
+          >
+            <div className="flex gap-1">
+              {[1, 2, 3, 4, 1].map((h, i) => (
+                <motion.div
+                  key={i}
+                  animate={{ height: [8, 16, 8] }}
+                  transition={{
+                    repeat: Infinity,
+                    duration: 0.5,
+                    delay: i * 0.1,
+                  }}
+                  className="w-1 rounded-full bg-red-500"
+                />
+              ))}
+            </div>
+            <span className="text-sm font-semibold text-red-500">Listening...</span>
+          </motion.div>
+        )}
+
+        {isProcessing && (
+          <motion.div
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -10 }}
+            className="flex items-center gap-2 overflow-hidden whitespace-nowrap"
+          >
+            <Sparkles className="h-4 w-4 animate-pulse text-indigo-500" />
+            <span className="bg-linear-to-r from-indigo-500 to-purple-500 bg-clip-text text-sm font-semibold text-transparent">
+              AI Is Thinking...
+            </span>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
+

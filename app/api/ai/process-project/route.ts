@@ -32,6 +32,14 @@ export async function POST(req: Request) {
 
         Available Employees (Psychology): ${JSON.stringify(employees)}
       `,
+      experimental_telemetry: {
+        isEnabled: true,
+        functionId: 'process-project-plan',
+        metadata: {
+          employeeCount: employees?.length || 0,
+          environment: process.env.NODE_ENV || 'development',
+        },
+      },
     })
 
     return Response.json(object)

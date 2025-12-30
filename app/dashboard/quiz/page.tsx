@@ -51,7 +51,7 @@ export default function QuizPage() {
     const fetchUser = async () => {
       const user = await getOrCreateDefaultUser()
       setUserId(user._id)
-      if (user.ikigai && user.lifeGoals?.length > 0) {
+      if (user.ikigai && (user.lifeGoals?.length ?? 0) > 0) {
         // router.push("/dashboard") // Allow re-taking the quiz if they want
       }
     }

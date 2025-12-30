@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 import { ActionResult, Integration as IntegrationType } from "@/lib/types"
 import { Integration } from "@/lib/models/Integration"
 import { IntegrationFormData } from "@/lib/schemas/integration"
+import { serialize } from "@/lib/utils"
 
 export async function saveIntegration(data: IntegrationFormData): Promise<ActionResult<string>> {
   try {
@@ -77,7 +78,7 @@ export async function syncIntegration(platform: string): Promise<ActionResult<vo
 export async function getIntegrations(): Promise<ActionResult<IntegrationType[]>> {
   try {
     const integrations = await Integration.find({}).populate('userId').sort({ createdAt: -1 }).lean()
-    return { success: true, data: integrations as unknown as IntegrationType[] }
+    return { success: true, data: serialize(integrations) as unknown as IntegrationType[] }
   } catch (error) {
     console.error("Get Integrations Error:", error)
     return { success: false, error: "Failed to fetch integrations" }

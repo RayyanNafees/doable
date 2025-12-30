@@ -180,10 +180,13 @@ function TaskCard({
               <TaskDialog
                 defaultValues={{
                   ...task,
-                  userId: typeof task.userId === 'object' ? task.userId._id : task.userId,
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  userId: typeof task.userId === 'object' ? (task.userId as any)._id : task.userId,
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   projectId: typeof task.projectId === 'object' ? (task.projectId as any)?._id : task.projectId,
                   dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
                   lastDelayedAt: task.lastDelayedAt ? new Date(task.lastDelayedAt) : undefined,
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 } as any}
                 userIds={userIds}
                 projectIds={projectIds}

@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
 
 interface EmployeeFormProps {
   defaultValues?: Partial<EmployeeFormData>
@@ -24,13 +23,13 @@ interface EmployeeFormProps {
 
 export function EmployeeForm({ defaultValues, onSubmit, onCancel }: EmployeeFormProps) {
   const form = useForm<EmployeeFormData>({
-    resolver: zodResolver(employeeSchema),
+    resolver: zodResolver(employeeSchema) as any,
     defaultValues: {
       name: "",
       psychology: {},
       pastCompletionRate: 0,
       ...defaultValues,
-    },
+    } as any,
   })
 
   const handleSubmit = async (data: EmployeeFormData) => {
@@ -72,7 +71,7 @@ export function EmployeeForm({ defaultValues, onSubmit, onCancel }: EmployeeForm
                 />
               </FormControl>
               <FormDescription>
-                Employee's historical task completion rate (0-100)
+                Employee&apos;s historical task completion rate (0-100)
               </FormDescription>
               <FormMessage />
             </FormItem>

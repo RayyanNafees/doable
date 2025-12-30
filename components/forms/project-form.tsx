@@ -26,18 +26,19 @@ interface ProjectFormProps {
   defaultValues?: Partial<ProjectFormData>
   onSubmit: (data: ProjectFormData) => Promise<void>
   onCancel?: () => void
-  employeeIds?: Array<{ _id: string; name: string }>
 }
 
-export function ProjectForm({ defaultValues, onSubmit, onCancel, employeeIds = [] }: ProjectFormProps) {
+export function ProjectForm({ defaultValues, onSubmit, onCancel }: ProjectFormProps) {
   const form = useForm<ProjectFormData>({
-    resolver: zodResolver(projectSchema),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: zodResolver(projectSchema) as any,
     defaultValues: {
       title: "",
       description: "",
       status: "Active",
       assignedEmployees: [],
       ...defaultValues,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any,
   })
 
