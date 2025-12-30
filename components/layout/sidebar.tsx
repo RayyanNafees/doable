@@ -3,28 +3,31 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { 
+import {
   Home,
-  Users, 
-  CheckSquare, 
-  FolderKanban, 
-  UserCheck, 
+  Users,
+  CheckSquare,
+  FolderKanban,
+  UserCheck,
   Plug,
   Settings,
   Calendar,
-  BarChart3
+  BarChart3,
+  Bot
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 const navItems = [
   { href: "/", label: "Today", icon: Home },
-  { href: "/tasks", label: "Tasks", icon: CheckSquare },
-  { href: "/projects", label: "Projects", icon: FolderKanban },
-  { href: "/users", label: "Users", icon: Users },
-  { href: "/employees", label: "Employees", icon: UserCheck },
-  { href: "/integrations", label: "Integrations", icon: Plug },
-  { href: "/calendar", label: "Calendar", icon: Calendar },
-  { href: "/analytics", label: "Analytics", icon: BarChart3 },
+  { href: "/dashboard/tasks", label: "Tasks", icon: CheckSquare },
+  { href: "/dashboard/projects", label: "Projects", icon: FolderKanban },
+  { href: "/dashboard/assistant", label: "AI Assistant", icon: Bot },
+  { href: "/dashboard/matrix", label: "Matrix", icon: BarChart3 },
+  { href: "/dashboard/quiz", label: "Ikigai Quiz", icon: CheckSquare },
+  { href: "/dashboard/integrations", label: "Integrations", icon: Plug },
+  { href: "/dashboard/employees", label: "Employees", icon: UserCheck },
+  { href: "/dashboard/users", label: "Users", icon: Users },
+  { href: "/dashboard/calendar", label: "Calendar", icon: Calendar },
 ]
 
 export function Sidebar() {

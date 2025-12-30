@@ -27,12 +27,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 
-type Integration = {
-  _id: string
-  platform: string
-  userId: any
-  lastSyncedAt?: Date
-}
+import { Integration, User } from "@/lib/types"
 
 export const columns: ColumnDef<Integration>[] = [
   {
@@ -61,7 +56,7 @@ export const columns: ColumnDef<Integration>[] = [
     accessorKey: "userId",
     header: "User",
     cell: ({ row }) => {
-      const user = row.getValue("userId") as any
+      const user = row.original.userId as User
       return <div className="text-sm">{user?.email || "—"}</div>
     },
   },
@@ -79,66 +74,75 @@ export const columns: ColumnDef<Integration>[] = [
   },
   {
     id: "actions",
-    cell: ({ row }) => {
-      const integration = row.original
-      const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-      const router = useRouter()
-
-      const handleDelete = async () => {
-        const result = await deleteIntegration(integration._id)
-        if (result.success) {
-          router.refresh()
-        }
-        setDeleteDialogOpen(false)
-      }
-
-      return (
-        <>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <IntegrationDialog defaultValues={integration}>
-                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                  <Pencil className="mr-2 h-4 w-4" />
-                  Edit
-                </DropdownMenuItem>
-              </IntegrationDialog>
-              <DropdownMenuItem
-                onClick={() => setDeleteDialogOpen(true)}
-                className="text-destructive"
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This action cannot be undone. This will permanently delete the integration.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
-                  Delete
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </>
-      )
-    },
+    cell: ({ row }) => <ActionCell integration={row.original} />,
   },
 ]
+
+const ActionCell = ({ integration }: { integration: Integration }) => {
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const router = useRouter()
+
+  const handleDelete = async () => {
+    const result = await deleteIntegration(integration._id)
+    if (result.success) {
+      router.refresh()
+    }
+    setDeleteDialogOpen(false)
+  }
+
+  return (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="h-8 w-8 p-0">
+            <span className="sr-only">Open menu</span>
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <IntegrationDialog
+            defaultValues={{
+              ...integration,
+              userId: typeof integration.userId === 'object' ? integration.userId._id : integration.userId,
+              lastSyncedAt: integration.lastSyncedAt ? new Date(integration.lastSyncedAt) : undefined,
+              platform: integration.platform as "Email" | "ClickUp" | "Todoist"
+            }}
+          >
+            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+              <Pencil className="mr-2 h-4 w-4" />
+              Edit
+            </DropdownMenuItem>
+          </IntegrationDialog>
+          <DropdownMenuItem
+            onClick={() => setDeleteDialogOpen(true)}
+            className="text-destructive"
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            Delete
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the integration.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  )
+}
+
 

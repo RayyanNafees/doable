@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Trash2 } from "lucide-react"
 
 interface TaskFormProps {
   defaultValues?: Partial<TaskFormData>
@@ -85,8 +86,8 @@ export function TaskForm({ defaultValues, onSubmit, onCancel, userIds = [], proj
           render={({ field }) => (
             <FormItem>
               <FormLabel>Project (Optional)</FormLabel>
-              <Select 
-                onValueChange={(value) => field.onChange(value === "none" ? undefined : value)} 
+              <Select
+                onValueChange={(value) => field.onChange(value === "none" ? undefined : value)}
                 value={field.value || "none"}
               >
                 <FormControl>
@@ -253,6 +254,73 @@ export function TaskForm({ defaultValues, onSubmit, onCancel, userIds = [], proj
               </FormItem>
             )}
           />
+        </div>
+
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <FormLabel className="text-base font-bold uppercase tracking-widest text-primary/70">Execution Steps (5 min each)</FormLabel>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const currentSubsteps = form.getValues("substeps") || []
+                form.setValue("substeps", [...currentSubsteps, { title: "", durationMins: 5, isCompleted: false }])
+              }}
+              className="h-8 border-dashed"
+            >
+              Add Step
+            </Button>
+          </div>
+          <div className="space-y-3">
+            {form.watch("substeps")?.map((_, index) => (
+              <div key={index} className="flex gap-2 items-start animate-in fade-in slide-in-from-left-2 duration-300">
+                <FormField
+                  control={form.control}
+                  name={`substeps.${index}.isCompleted`}
+                  render={({ field }) => (
+                    <FormItem className="mt-2.5">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name={`substeps.${index}.title`}
+                  render={({ field }) => (
+                    <FormItem className="flex-1">
+                      <FormControl>
+                        <Input placeholder={`Step ${index + 1}`} {...field} className="h-9" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9 text-muted-foreground hover:text-destructive"
+                  onClick={() => {
+                    const currentSubsteps = form.getValues("substeps") || []
+                    form.setValue("substeps", currentSubsteps.filter((_, i) => i !== index))
+                  }}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+            {(!form.watch("substeps") || form.watch("substeps")?.length === 0) && (
+              <p className="text-xs text-muted-foreground italic text-center py-4 border-2 border-dashed rounded-xl">
+                No micro-steps defined. Breaking tasks into 5-minute chunks increases focus.
+              </p>
+            )}
+          </div>
         </div>
 
         <div className="flex items-center space-x-4">

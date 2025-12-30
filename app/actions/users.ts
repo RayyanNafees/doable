@@ -2,42 +2,42 @@
 
 import { z } from "zod"
 import { revalidatePath } from "next/cache"
-import { connectDB } from "@/lib/models/connect"
 import { User } from "@/lib/models/User"
 import { userSchema, type UserFormData } from "@/lib/schemas/user"
+import { ActionResult, User as UserType } from "@/lib/types"
 
-export async function getUsers() {
+export async function getUsers(): Promise<ActionResult<UserType[]>> {
   try {
-    await connectDB()
+
     const users = await User.find({}).lean()
-    return { success: true, data: users }
+    return { success: true, data: users as unknown as UserType[] }
   } catch (error) {
     console.error("Error fetching users:", error)
     return { success: false, error: "Failed to fetch users" }
   }
 }
 
-export async function getUserById(id: string) {
+export async function getUserById(id: string): Promise<ActionResult<UserType>> {
   try {
-    await connectDB()
+
     const user = await User.findById(id).lean()
     if (!user) {
       return { success: false, error: "User not found" }
     }
-    return { success: true, data: user }
+    return { success: true, data: user as unknown as UserType }
   } catch (error) {
     console.error("Error fetching user:", error)
     return { success: false, error: "Failed to fetch user" }
   }
 }
 
-export async function createUser(data: UserFormData) {
+export async function createUser(data: UserFormData): Promise<ActionResult<UserType>> {
   try {
-    await connectDB()
+
     const validated = userSchema.parse(data)
     const user = await User.create(validated)
-    revalidatePath("/users")
-    return { success: true, data: user }
+    revalidatePath("/dashboard/users")
+    return { success: true, data: user as unknown as UserType }
   } catch (error) {
     console.error("Error creating user:", error)
     if (error instanceof z.ZodError) {
@@ -47,16 +47,16 @@ export async function createUser(data: UserFormData) {
   }
 }
 
-export async function updateUser(id: string, data: Partial<UserFormData>) {
+export async function updateUser(id: string, data: Partial<UserFormData>): Promise<ActionResult<UserType>> {
   try {
-    await connectDB()
+
     const validated = userSchema.partial().parse(data)
     const user = await User.findByIdAndUpdate(id, validated, { new: true })
     if (!user) {
       return { success: false, error: "User not found" }
     }
-    revalidatePath("/users")
-    return { success: true, data: user }
+    revalidatePath("/dashboard/users")
+    return { success: true, data: user as unknown as UserType }
   } catch (error) {
     console.error("Error updating user:", error)
     if (error instanceof z.ZodError) {
@@ -66,18 +66,17 @@ export async function updateUser(id: string, data: Partial<UserFormData>) {
   }
 }
 
-export async function deleteUser(id: string) {
+export async function deleteUser(id: string): Promise<ActionResult<void>> {
   try {
-    await connectDB()
+
     const user = await User.findByIdAndDelete(id)
     if (!user) {
       return { success: false, error: "User not found" }
     }
-    revalidatePath("/users")
-    return { success: true }
+    revalidatePath("/dashboard/users")
+    return { success: true, data: undefined as void }
   } catch (error) {
     console.error("Error deleting user:", error)
     return { success: false, error: "Failed to delete user" }
   }
 }
-

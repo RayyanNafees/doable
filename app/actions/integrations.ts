@@ -1,87 +1,73 @@
 "use server"
 
-import { z } from "zod"
 import { revalidatePath } from "next/cache"
-import { connectDB } from "@/lib/models/connect"
+import { ActionResult } from "@/lib/types"
 import { Integration } from "@/lib/models/Integration"
-import { integrationSchema, type IntegrationFormData } from "@/lib/schemas/integration"
 
-export async function getIntegrations() {
+export async function saveIntegration(data: Record<string, string>): Promise<ActionResult<string>> {
   try {
-    await connectDB()
-    const integrations = await Integration.find({})
-      .populate("userId", "email")
-      .lean()
-    return { success: true, data: integrations }
+
+    const { _id, ...rest } = data
+
+    if (_id) {
+      await Integration.findByIdAndUpdate(_id, rest)
+    } else {
+      await Integration.create(rest)
+    }
+
+    revalidatePath("/dashboard/integrations")
+    return { success: true, data: "Integration saved successfully" }
   } catch (error) {
-    console.error("Error fetching integrations:", error)
-    return { success: false, error: "Failed to fetch integrations" }
+    console.error("Save Integration Error:", error)
+    return { success: false, error: "Failed to save integration" }
   }
 }
 
-export async function getIntegrationById(id: string) {
+export async function deleteIntegration(id: string): Promise<ActionResult<void>> {
   try {
-    await connectDB()
-    const integration = await Integration.findById(id)
-      .populate("userId", "email")
-      .lean()
-    if (!integration) {
-      return { success: false, error: "Integration not found" }
-    }
-    return { success: true, data: integration }
-  } catch (error) {
-    console.error("Error fetching integration:", error)
-    return { success: false, error: "Failed to fetch integration" }
-  }
-}
 
-export async function createIntegration(data: IntegrationFormData) {
-  try {
-    await connectDB()
-    const validated = integrationSchema.parse(data)
-    const integration = await Integration.create(validated)
-    revalidatePath("/integrations")
-    return { success: true, data: integration }
+    await Integration.findByIdAndDelete(id)
+    revalidatePath("/dashboard/integrations")
+    return { success: true, data: undefined }
   } catch (error) {
-    console.error("Error creating integration:", error)
-    if (error instanceof z.ZodError) {
-      return { success: false, error: error.errors[0].message }
-    }
-    return { success: false, error: "Failed to create integration" }
-  }
-}
-
-export async function updateIntegration(id: string, data: Partial<IntegrationFormData>) {
-  try {
-    await connectDB()
-    const validated = integrationSchema.partial().parse(data)
-    const integration = await Integration.findByIdAndUpdate(id, validated, { new: true })
-    if (!integration) {
-      return { success: false, error: "Integration not found" }
-    }
-    revalidatePath("/integrations")
-    return { success: true, data: integration }
-  } catch (error) {
-    console.error("Error updating integration:", error)
-    if (error instanceof z.ZodError) {
-      return { success: false, error: error.errors[0].message }
-    }
-    return { success: false, error: "Failed to update integration" }
-  }
-}
-
-export async function deleteIntegration(id: string) {
-  try {
-    await connectDB()
-    const integration = await Integration.findByIdAndDelete(id)
-    if (!integration) {
-      return { success: false, error: "Integration not found" }
-    }
-    revalidatePath("/integrations")
-    return { success: true }
-  } catch (error) {
-    console.error("Error deleting integration:", error)
+    console.error("Delete Integration Error:", error)
     return { success: false, error: "Failed to delete integration" }
   }
 }
 
+export async function createIntegration(data: Record<string, string>): Promise<ActionResult<string>> {
+  return saveIntegration(data)
+}
+
+export async function updateIntegration(id: string, data: Record<string, string>): Promise<ActionResult<string>> {
+  return saveIntegration({ ...data, _id: id })
+}
+
+export async function toggleIntegration(platform: string, currentStatus: string): Promise<ActionResult<string>> {
+  try {
+
+    // Simulate updating integration status in DB
+    const newStatus = currentStatus === "Connected" ? "Disconnected" : "Connected"
+
+    // In a real app: await Integration.findOneAndUpdate({ platform }, { status: newStatus })
+
+    revalidatePath("/dashboard/integrations")
+    return { success: true, data: newStatus }
+  } catch (error) {
+    console.error("Integration Error:", error)
+    return { success: false, error: "Failed to toggle integration" }
+  }
+}
+
+export async function syncIntegration(platform: string): Promise<ActionResult<void>> {
+  try {
+
+    // Simulate sync logic
+    await new Promise(resolve => setTimeout(resolve, 1500))
+
+    revalidatePath("/dashboard/integrations")
+    return { success: true, data: undefined }
+  } catch (error) {
+    return { success: false, error: "Sync failed" }
+  }
+}

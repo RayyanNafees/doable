@@ -2,27 +2,27 @@
 
 import { z } from "zod"
 import { revalidatePath } from "next/cache"
-import { connectDB } from "@/lib/models/connect"
 import { Project } from "@/lib/models/Project"
 import { projectSchema, type ProjectFormData } from "@/lib/schemas/project"
+import { ActionResult, Project as ProjectType } from "@/lib/types"
 
-export async function getProjects() {
+export async function getProjects(): Promise<ActionResult<ProjectType[]>> {
   try {
-    await connectDB()
+
     const projects = await Project.find({})
       .populate("userId", "email")
       .populate("assignedEmployees", "name")
       .lean()
-    return { success: true, data: projects }
+    return { success: true, data: projects as unknown as ProjectType[] }
   } catch (error) {
     console.error("Error fetching projects:", error)
     return { success: false, error: "Failed to fetch projects" }
   }
 }
 
-export async function getProjectById(id: string) {
+export async function getProjectById(id: string): Promise<ActionResult<ProjectType>> {
   try {
-    await connectDB()
+
     const project = await Project.findById(id)
       .populate("userId", "email")
       .populate("assignedEmployees", "name")
@@ -30,20 +30,20 @@ export async function getProjectById(id: string) {
     if (!project) {
       return { success: false, error: "Project not found" }
     }
-    return { success: true, data: project }
+    return { success: true, data: project as unknown as ProjectType }
   } catch (error) {
     console.error("Error fetching project:", error)
     return { success: false, error: "Failed to fetch project" }
   }
 }
 
-export async function createProject(data: ProjectFormData) {
+export async function createProject(data: ProjectFormData): Promise<ActionResult<ProjectType>> {
   try {
-    await connectDB()
+
     const validated = projectSchema.parse(data)
     const project = await Project.create(validated)
-    revalidatePath("/projects")
-    return { success: true, data: project }
+    revalidatePath("/dashboard/projects")
+    return { success: true, data: project as unknown as ProjectType }
   } catch (error) {
     console.error("Error creating project:", error)
     if (error instanceof z.ZodError) {
@@ -53,16 +53,16 @@ export async function createProject(data: ProjectFormData) {
   }
 }
 
-export async function updateProject(id: string, data: Partial<ProjectFormData>) {
+export async function updateProject(id: string, data: Partial<ProjectFormData>): Promise<ActionResult<ProjectType>> {
   try {
-    await connectDB()
+
     const validated = projectSchema.partial().parse(data)
     const project = await Project.findByIdAndUpdate(id, validated, { new: true })
     if (!project) {
       return { success: false, error: "Project not found" }
     }
-    revalidatePath("/projects")
-    return { success: true, data: project }
+    revalidatePath("/dashboard/projects")
+    return { success: true, data: project as unknown as ProjectType }
   } catch (error) {
     console.error("Error updating project:", error)
     if (error instanceof z.ZodError) {
@@ -72,18 +72,17 @@ export async function updateProject(id: string, data: Partial<ProjectFormData>) 
   }
 }
 
-export async function deleteProject(id: string) {
+export async function deleteProject(id: string): Promise<ActionResult<void>> {
   try {
-    await connectDB()
+
     const project = await Project.findByIdAndDelete(id)
     if (!project) {
       return { success: false, error: "Project not found" }
     }
-    revalidatePath("/projects")
-    return { success: true }
+    revalidatePath("/dashboard/projects")
+    return { success: true, data: undefined as void }
   } catch (error) {
     console.error("Error deleting project:", error)
     return { success: false, error: "Failed to delete project" }
   }
 }
-

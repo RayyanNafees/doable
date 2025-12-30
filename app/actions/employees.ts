@@ -2,42 +2,42 @@
 
 import { z } from "zod"
 import { revalidatePath } from "next/cache"
-import { connectDB } from "@/lib/models/connect"
 import { Employee } from "@/lib/models/Employee"
 import { employeeSchema, type EmployeeFormData } from "@/lib/schemas/employee"
+import { ActionResult, Employee as EmployeeType } from "@/lib/types"
 
-export async function getEmployees() {
+export async function getEmployees(): Promise<ActionResult<EmployeeType[]>> {
   try {
-    await connectDB()
+
     const employees = await Employee.find({}).lean()
-    return { success: true, data: employees }
+    return { success: true, data: employees as unknown as EmployeeType[] }
   } catch (error) {
     console.error("Error fetching employees:", error)
     return { success: false, error: "Failed to fetch employees" }
   }
 }
 
-export async function getEmployeeById(id: string) {
+export async function getEmployeeById(id: string): Promise<ActionResult<EmployeeType>> {
   try {
-    await connectDB()
+
     const employee = await Employee.findById(id).lean()
     if (!employee) {
       return { success: false, error: "Employee not found" }
     }
-    return { success: true, data: employee }
+    return { success: true, data: employee as unknown as EmployeeType }
   } catch (error) {
     console.error("Error fetching employee:", error)
     return { success: false, error: "Failed to fetch employee" }
   }
 }
 
-export async function createEmployee(data: EmployeeFormData) {
+export async function createEmployee(data: EmployeeFormData): Promise<ActionResult<EmployeeType>> {
   try {
-    await connectDB()
+
     const validated = employeeSchema.parse(data)
     const employee = await Employee.create(validated)
     revalidatePath("/employees")
-    return { success: true, data: employee }
+    return { success: true, data: employee as unknown as EmployeeType }
   } catch (error) {
     console.error("Error creating employee:", error)
     if (error instanceof z.ZodError) {
@@ -47,16 +47,16 @@ export async function createEmployee(data: EmployeeFormData) {
   }
 }
 
-export async function updateEmployee(id: string, data: Partial<EmployeeFormData>) {
+export async function updateEmployee(id: string, data: Partial<EmployeeFormData>): Promise<ActionResult<EmployeeType>> {
   try {
-    await connectDB()
+
     const validated = employeeSchema.partial().parse(data)
     const employee = await Employee.findByIdAndUpdate(id, validated, { new: true })
     if (!employee) {
       return { success: false, error: "Employee not found" }
     }
     revalidatePath("/employees")
-    return { success: true, data: employee }
+    return { success: true, data: employee as unknown as EmployeeType }
   } catch (error) {
     console.error("Error updating employee:", error)
     if (error instanceof z.ZodError) {
@@ -66,18 +66,17 @@ export async function updateEmployee(id: string, data: Partial<EmployeeFormData>
   }
 }
 
-export async function deleteEmployee(id: string) {
+export async function deleteEmployee(id: string): Promise<ActionResult<void>> {
   try {
-    await connectDB()
+
     const employee = await Employee.findByIdAndDelete(id)
     if (!employee) {
       return { success: false, error: "Employee not found" }
     }
     revalidatePath("/employees")
-    return { success: true }
+    return { success: true, data: undefined as void }
   } catch (error) {
     console.error("Error deleting employee:", error)
     return { success: false, error: "Failed to delete employee" }
   }
 }
-
