@@ -1,14 +1,15 @@
 "use server"
-
 import { revalidatePath } from "next/cache"
 import { ActionResult, Integration as IntegrationType } from "@/lib/types"
 import { Integration } from "@/lib/models/Integration"
 import { IntegrationFormData } from "@/lib/schemas/integration"
 import { serialize } from "@/lib/utils"
+import connectDB from "@/lib/models/connect"
+import "@/lib/models/User"
 
 export async function saveIntegration(data: IntegrationFormData): Promise<ActionResult<string>> {
   try {
-
+    await connectDB()
     const { _id, ...rest } = data
 
     if (_id) {
@@ -27,7 +28,7 @@ export async function saveIntegration(data: IntegrationFormData): Promise<Action
 
 export async function deleteIntegration(id: string): Promise<ActionResult<void>> {
   try {
-
+    await connectDB()
     await Integration.findByIdAndDelete(id)
     revalidatePath("/dashboard/integrations")
     return { success: true, data: undefined }
@@ -47,7 +48,7 @@ export async function updateIntegration(id: string, data: IntegrationFormData): 
 
 export async function toggleIntegration(platform: string, currentStatus: string): Promise<ActionResult<string>> {
   try {
-
+    // await connectDB() // Uncomment when real logic is added
     // Simulate updating integration status in DB
     const newStatus = currentStatus === "Connected" ? "Disconnected" : "Connected"
 
@@ -64,7 +65,7 @@ export async function toggleIntegration(platform: string, currentStatus: string)
 
 export async function syncIntegration(platform: string): Promise<ActionResult<void>> {
   try {
-
+    // await connectDB() // Uncomment when real logic is added
     // Simulate sync logic
     await new Promise(resolve => setTimeout(resolve, 1500))
 
@@ -77,6 +78,7 @@ export async function syncIntegration(platform: string): Promise<ActionResult<vo
 
 export async function getIntegrations(): Promise<ActionResult<IntegrationType[]>> {
   try {
+    await connectDB()
     const integrations = await Integration.find({}).populate('userId').sort({ createdAt: -1 }).lean()
     return { success: true, data: serialize(integrations) as unknown as IntegrationType[] }
   } catch (error) {

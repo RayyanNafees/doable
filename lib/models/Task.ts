@@ -25,4 +25,4 @@ const TaskSchema = new Schema({
   reversePomodoroActive: { type: Boolean, default: false }
 }, { timestamps: true });
 
-export const Task =  model('Task', TaskSchema);
+export const Task = models?.Task || model('Task', TaskSchema);
