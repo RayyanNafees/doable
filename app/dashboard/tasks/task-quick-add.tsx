@@ -28,8 +28,13 @@ export function TaskQuickAdd({ userIds, projectIds }: TaskQuickAddProps) {
     try {
       // Parse natural language input
       const parsed = parseTaskInput(input, userIds, projectIds)
-      
-      const result = await createTask(parsed)
+
+      const result = await createTask({
+        ...parsed,
+        priority: 3, // Default priority
+        isCompleted: false,
+        reversePomodoroActive: false,
+      })
       if (result.success) {
         toast.success("Task created successfully")
         setInput("")
@@ -37,7 +42,7 @@ export function TaskQuickAdd({ userIds, projectIds }: TaskQuickAddProps) {
       } else {
         toast.error(result.error || "Failed to create task")
       }
-    } catch (error) {
+    } catch {
       toast.error("An unexpected error occurred")
     } finally {
       setIsSubmitting(false)
@@ -50,10 +55,11 @@ export function TaskQuickAdd({ userIds, projectIds }: TaskQuickAddProps) {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Textarea
-              placeholder='Add task to top of list. Example: "Some task title @fri 4pm +projectName #some-tag #some-other-tag 10m/3h"'
+              placeholder={userIds.length === 0 ? "No (persona) users found. Please create a user first." : 'Add task to top of list. Example: "Some task title @fri 4pm +projectName #some-tag #some-other-tag 10m/3h"'}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               className="min-h-[100px] resize-none text-base"
+              disabled={isSubmitting}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
                   handleSubmit(e)
@@ -65,9 +71,9 @@ export function TaskQuickAdd({ userIds, projectIds }: TaskQuickAddProps) {
             </p>
           </div>
           <div className="flex justify-center">
-            <Button 
-              type="submit" 
-              size="lg" 
+            <Button
+              type="submit"
+              size="lg"
               disabled={!input.trim() || isSubmitting}
               className="min-w-[200px]"
             >

@@ -5,10 +5,10 @@ import { revalidatePath } from "next/cache"
 import { Project } from "@/lib/models/Project"
 import { projectSchema, type ProjectFormData } from "@/lib/schemas/project"
 import { ActionResult, Project as ProjectType } from "@/lib/types"
+import { getOrCreateDefaultUser } from "./users"
 
 export async function getProjects(): Promise<ActionResult<ProjectType[]>> {
   try {
-
     const projects = await Project.find({})
       .populate("userId", "email")
       .populate("assignedEmployees", "name")
@@ -22,7 +22,6 @@ export async function getProjects(): Promise<ActionResult<ProjectType[]>> {
 
 export async function getProjectById(id: string): Promise<ActionResult<ProjectType>> {
   try {
-
     const project = await Project.findById(id)
       .populate("userId", "email")
       .populate("assignedEmployees", "name")
@@ -39,23 +38,26 @@ export async function getProjectById(id: string): Promise<ActionResult<ProjectTy
 
 export async function createProject(data: ProjectFormData): Promise<ActionResult<ProjectType>> {
   try {
-
     const validated = projectSchema.parse(data)
+    if (!validated.userId) {
+      const defaultUser = await getOrCreateDefaultUser()
+      validated.userId = defaultUser._id
+    }
     const project = await Project.create(validated)
     revalidatePath("/dashboard/projects")
     return { success: true, data: project as unknown as ProjectType }
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error creating project:", error)
     if (error instanceof z.ZodError) {
-      return { success: false, error: error.errors[0].message }
+      const firstError = error.issues?.[0]?.message
+      return { success: false, error: firstError || "Validation error" }
     }
-    return { success: false, error: "Failed to create project" }
+    return { success: false, error: error.message || "Failed to create project" }
   }
 }
 
 export async function updateProject(id: string, data: Partial<ProjectFormData>): Promise<ActionResult<ProjectType>> {
   try {
-
     const validated = projectSchema.partial().parse(data)
     const project = await Project.findByIdAndUpdate(id, validated, { new: true })
     if (!project) {
@@ -63,18 +65,18 @@ export async function updateProject(id: string, data: Partial<ProjectFormData>):
     }
     revalidatePath("/dashboard/projects")
     return { success: true, data: project as unknown as ProjectType }
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error updating project:", error)
     if (error instanceof z.ZodError) {
-      return { success: false, error: error.errors[0].message }
+      const firstError = error.issues?.[0]?.message
+      return { success: false, error: firstError || "Validation error" }
     }
-    return { success: false, error: "Failed to update project" }
+    return { success: false, error: error.message || "Failed to update project" }
   }
 }
 
 export async function deleteProject(id: string): Promise<ActionResult<void>> {
   try {
-
     const project = await Project.findByIdAndDelete(id)
     if (!project) {
       return { success: false, error: "Project not found" }

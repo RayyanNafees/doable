@@ -8,7 +8,7 @@ const quizResultSchema = z.object({
   userId: z.string(),
   ikigai: z.string(),
   lifeGoals: z.array(z.string()),
-  quizResults: z.record(z.any()),
+  quizResults: z.record(z.string(), z.any()),
 })
 
 export async function submitPsychologyQuiz(data: z.infer<typeof quizResultSchema>) {

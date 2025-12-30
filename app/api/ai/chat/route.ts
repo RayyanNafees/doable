@@ -9,7 +9,7 @@ export async function POST(req: Request) {
 
     // Use Gemini directly instead of depending on proper Python backend setup
     const { text } = await generateText({
-      model: google("gemini-1.5-flash"),
+      model: google("gemini-2.5-flash"),
       prompt: `You are a helpful Personal Productivity Assistant. 
       User says: "${message}"
       

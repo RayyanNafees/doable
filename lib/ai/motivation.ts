@@ -5,7 +5,7 @@ import { Task, User } from "@/lib/types"
 export async function generateMotivation(task: Task, user: User) {
   try {
     const { text } = await generateText({
-      model: google("gemini-1.5-flash"),
+      model: google("gemini-2.5-flash"),
       prompt: `
         You are a motivational coach for a user with the following profile:
         Ikigai: ${user.ikigai}

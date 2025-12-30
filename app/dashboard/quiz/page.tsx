@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "sonner"
 import { submitPsychologyQuiz } from "@/app/actions/psychology"
+import { getOrCreateDefaultUser } from "@/app/actions/users"
 import { motion, AnimatePresence } from "framer-motion"
 
 const steps = [
@@ -36,6 +37,7 @@ const steps = [
 export default function QuizPage() {
   const router = useRouter()
   const [step, setStep] = useState(0)
+  const [userId, setUserId] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     love: "",
     goodAt: "",
@@ -45,8 +47,16 @@ export default function QuizPage() {
     quizResults: {} as Record<string, string>
   })
 
-  // In a real app, we'd get this from session
-  const userId = "placeholder_user_id"
+  useEffect(() => {
+    const fetchUser = async () => {
+      const user = await getOrCreateDefaultUser()
+      setUserId(user._id)
+      if (user.ikigai && user.lifeGoals?.length > 0) {
+        // router.push("/dashboard") // Allow re-taking the quiz if they want
+      }
+    }
+    fetchUser()
+  }, [])
 
   const handleNext = () => {
     if (step < steps.length - 1) {
@@ -61,6 +71,11 @@ export default function QuizPage() {
   }
 
   const handleSubmit = async () => {
+    if (!userId) {
+      toast.error("User not found")
+      return
+    }
+
     const ikigai = `I love ${formData.love}, I'm good at ${formData.goodAt}, the world needs ${formData.needs}, and I can be paid for ${formData.paidFor}.`
     const lifeGoals = formData.goals.split("\n").filter(g => g.trim())
 
@@ -74,6 +89,7 @@ export default function QuizPage() {
     if (result.success) {
       toast.success("Psychology profile updated!")
       router.push("/dashboard")
+      router.refresh()
     } else {
       toast.error(result.error || "Failed to submit quiz")
     }

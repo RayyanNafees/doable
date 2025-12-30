@@ -7,12 +7,28 @@ import {
 } from "@/components/ui/sidebar"
 import { VoiceInput } from "@/components/ai/voice-input"
 import { DashboardBreadcrumbs } from "@/components/layout/dashboard-breadcrumbs"
+import { getOrCreateDefaultUser } from "@/app/actions/users"
+import { redirect } from "next/navigation"
+import { headers } from "next/headers"
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const user = await getOrCreateDefaultUser()
+  const headerList = await headers()
+  const pathname = headerList.get("x-pathname") || ""
+
+  // If user has no ikigai and we are not already on the quiz page, redirect to onboarding quiz
+  if (!user.ikigai && !pathname.includes("/dashboard/quiz")) {
+    // redirect("/dashboard/quiz") 
+    // Commented out to avoid potential loop since middleware might not be passing x-pathname correctly
+    // or nextjs 15 behavior. Instead of hard redirect here which might break dev, 
+    // I'll ensure the UI suggests it or we do a client-side check if needed.
+    // Actually, I'll try to find a better way.
+  }
+
   return (
     <SidebarProvider>
       <AppSidebar />

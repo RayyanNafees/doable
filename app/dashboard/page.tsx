@@ -4,6 +4,7 @@ import { getTasks } from "@/app/actions/tasks"
 import { getUsers } from "@/app/actions/users"
 import { getProjects } from "@/app/actions/projects"
 import { MotivationalNudge } from "@/components/dashboard/motivational-nudge"
+import { Task } from "@/lib/types"
 
 export default async function Page() {
   const tasksResult = await getTasks()
@@ -14,7 +15,7 @@ export default async function Page() {
   const users = (usersResult.success ? usersResult.data : []) || []
   const projects = (projectsResult.success ? projectsResult.data : []) || []
 
-  const delayedTasks = tasks.filter(t => !t.isCompleted)
+  const delayedTasks = (tasks as Task[]).filter(t => !t.isCompleted)
 
   return (
     <div className="p-4 overflow-auto">

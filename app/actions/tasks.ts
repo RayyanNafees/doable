@@ -4,11 +4,11 @@ import { z } from "zod"
 import { revalidatePath } from "next/cache"
 import { Task } from "@/lib/models/Task"
 import { taskSchema, type TaskFormData } from "@/lib/schemas/task"
-
 import { ActionResult, Task as TaskType } from "@/lib/types"
 import { google } from "@ai-sdk/google"
 import { generateObject } from "ai"
 import { User } from "@/lib/models/User"
+import { getOrCreateDefaultUser } from "./users"
 
 const enrichmentSchema = z.object({
   eisenhowerQuadrant: z.enum([
@@ -24,7 +24,6 @@ const enrichmentSchema = z.object({
 
 export async function getTasks(): Promise<ActionResult<TaskType[]>> {
   try {
-
     const tasks = await Task.find({})
       .populate("userId", "email")
       .populate("projectId", "title")
@@ -38,7 +37,6 @@ export async function getTasks(): Promise<ActionResult<TaskType[]>> {
 
 export async function getTaskById(id: string): Promise<ActionResult<TaskType>> {
   try {
-
     const task = await Task.findById(id)
       .populate("userId", "email")
       .populate("projectId", "title")
@@ -55,9 +53,13 @@ export async function getTaskById(id: string): Promise<ActionResult<TaskType>> {
 
 export async function createTask(data: TaskFormData): Promise<ActionResult<TaskType>> {
   try {
-
     const validated = taskSchema.parse(data)
     let finalData = { ...validated }
+
+    if (!finalData.userId) {
+      const defaultUser = await getOrCreateDefaultUser()
+      finalData.userId = defaultUser._id
+    }
 
     // AI Enrichment: Automatically sort and find the "Why"
     try {
@@ -65,7 +67,7 @@ export async function createTask(data: TaskFormData): Promise<ActionResult<TaskT
         const user = await User.findById(finalData.userId).lean()
         if (user) {
           const { object } = await generateObject({
-            model: google("gemini-1.5-flash"),
+            model: google("gemini-2.5-flash"),
             schema: enrichmentSchema,
             prompt: `
             Analyze this task: "${finalData.title}"
@@ -97,18 +99,18 @@ export async function createTask(data: TaskFormData): Promise<ActionResult<TaskT
     const task = await Task.create(finalData)
     revalidatePath("/dashboard")
     return { success: true, data: task as unknown as TaskType }
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error creating task:", error)
     if (error instanceof z.ZodError) {
-      return { success: false, error: error.errors[0].message }
+      const firstError = error.issues?.[0]?.message
+      return { success: false, error: firstError || "Validation error" }
     }
-    return { success: false, error: "Failed to create task" }
+    return { success: false, error: error.message || "Failed to create task" }
   }
 }
 
 export async function updateTask(id: string, data: Partial<TaskFormData>): Promise<ActionResult<TaskType>> {
   try {
-
     const validated = taskSchema.partial().parse(data)
     const task = await Task.findByIdAndUpdate(id, validated, { new: true })
     if (!task) {
@@ -116,18 +118,17 @@ export async function updateTask(id: string, data: Partial<TaskFormData>): Promi
     }
     revalidatePath("/dashboard")
     return { success: true, data: task as unknown as TaskType }
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error updating task:", error)
     if (error instanceof z.ZodError) {
-      return { success: false, error: error.errors[0].message }
+      return { success: false, error: error.issues[0].message }
     }
-    return { success: false, error: "Failed to update task" }
+    return { success: false, error: error.message || "Failed to update task" }
   }
 }
 
 export async function deleteTask(id: string): Promise<ActionResult<void>> {
   try {
-
     const task = await Task.findByIdAndDelete(id)
     if (!task) {
       return { success: false, error: "Task not found" }
@@ -146,7 +147,7 @@ export async function generateSubsteps(taskId: string): Promise<ActionResult<voi
     if (!task) return { success: false, error: "Task not found" }
 
     const { object } = await generateObject({
-      model: google("gemini-1.5-flash"),
+      model: google("gemini-2.5-flash"),
       schema: z.object({
         substeps: z.array(z.object({
           title: z.string(),

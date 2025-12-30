@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import {
   Dialog,
@@ -18,19 +18,13 @@ import { toast } from "sonner"
 interface TaskDialogProps {
   children: React.ReactNode
   defaultValues?: Partial<TaskFormData>
-  userIds?: Array<{ _id: string; email: string }>
   projectIds?: Array<{ _id: string; title: string }>
 }
 
-export function TaskDialog({ children, defaultValues, userIds = [], projectIds = [] }: TaskDialogProps) {
+export function TaskDialog({ children, defaultValues, projectIds = [] }: TaskDialogProps) {
   const [open, setOpen] = useState(false)
-  const [mounted, setMounted] = useState(false)
   const router = useRouter()
   const isEdit = !!defaultValues?._id
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
 
   const handleSubmit = async (data: TaskFormData) => {
     try {
@@ -58,27 +52,22 @@ export function TaskDialog({ children, defaultValues, userIds = [], projectIds =
     }
   }
 
-  if (!mounted) {
-    return <div suppressHydrationWarning>{children}</div>
-  }
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isEdit ? "Edit Task" : "Create Task"}</DialogTitle>
           <DialogDescription>
             {isEdit
-              ? "Update task information and psychological context."
-              : "Add a new task with psychological context."}
+              ? "Update task details and progress."
+              : "Add a new task to your list."}
           </DialogDescription>
         </DialogHeader>
         <TaskForm
           defaultValues={defaultValues}
           onSubmit={handleSubmit}
           onCancel={() => setOpen(false)}
-          userIds={userIds}
           projectIds={projectIds}
         />
       </DialogContent>

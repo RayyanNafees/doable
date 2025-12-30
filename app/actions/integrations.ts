@@ -1,10 +1,11 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { ActionResult } from "@/lib/types"
+import { ActionResult, Integration as IntegrationType } from "@/lib/types"
 import { Integration } from "@/lib/models/Integration"
+import { IntegrationFormData } from "@/lib/schemas/integration"
 
-export async function saveIntegration(data: Record<string, string>): Promise<ActionResult<string>> {
+export async function saveIntegration(data: IntegrationFormData): Promise<ActionResult<string>> {
   try {
 
     const { _id, ...rest } = data
@@ -35,11 +36,11 @@ export async function deleteIntegration(id: string): Promise<ActionResult<void>>
   }
 }
 
-export async function createIntegration(data: Record<string, string>): Promise<ActionResult<string>> {
+export async function createIntegration(data: IntegrationFormData): Promise<ActionResult<string>> {
   return saveIntegration(data)
 }
 
-export async function updateIntegration(id: string, data: Record<string, string>): Promise<ActionResult<string>> {
+export async function updateIntegration(id: string, data: IntegrationFormData): Promise<ActionResult<string>> {
   return saveIntegration({ ...data, _id: id })
 }
 
@@ -59,6 +60,7 @@ export async function toggleIntegration(platform: string, currentStatus: string)
   }
 }
 
+
 export async function syncIntegration(platform: string): Promise<ActionResult<void>> {
   try {
 
@@ -69,5 +71,15 @@ export async function syncIntegration(platform: string): Promise<ActionResult<vo
     return { success: true, data: undefined }
   } catch (error) {
     return { success: false, error: "Sync failed" }
+  }
+}
+
+export async function getIntegrations(): Promise<ActionResult<IntegrationType[]>> {
+  try {
+    const integrations = await Integration.find({}).populate('userId').sort({ createdAt: -1 }).lean()
+    return { success: true, data: integrations as unknown as IntegrationType[] }
+  } catch (error) {
+    console.error("Get Integrations Error:", error)
+    return { success: false, error: "Failed to fetch integrations" }
   }
 }

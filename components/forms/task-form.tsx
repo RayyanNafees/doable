@@ -29,11 +29,10 @@ interface TaskFormProps {
   defaultValues?: Partial<TaskFormData>
   onSubmit: (data: TaskFormData) => Promise<void>
   onCancel?: () => void
-  userIds?: Array<{ _id: string; email: string }>
   projectIds?: Array<{ _id: string; title: string }>
 }
 
-export function TaskForm({ defaultValues, onSubmit, onCancel, userIds = [], projectIds = [] }: TaskFormProps) {
+export function TaskForm({ defaultValues, onSubmit, onCancel, projectIds = [] }: TaskFormProps) {
   const form = useForm<TaskFormData>({
     resolver: zodResolver(taskSchema),
     defaultValues: {
@@ -44,7 +43,7 @@ export function TaskForm({ defaultValues, onSubmit, onCancel, userIds = [], proj
       isCompleted: false,
       reversePomodoroActive: false,
       ...defaultValues,
-    },
+    } as any,
   })
 
   const handleSubmit = async (data: TaskFormData) => {
@@ -55,31 +54,6 @@ export function TaskForm({ defaultValues, onSubmit, onCancel, userIds = [], proj
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        <FormField
-          control={form.control}
-          name="userId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>User</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a user" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {userIds.map((user) => (
-                    <SelectItem key={user._id} value={user._id}>
-                      {user.email}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
         <FormField
           control={form.control}
           name="projectId"
@@ -375,4 +349,3 @@ export function TaskForm({ defaultValues, onSubmit, onCancel, userIds = [], proj
     </Form>
   )
 }
-

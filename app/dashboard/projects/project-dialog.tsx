@@ -18,19 +18,13 @@ import { toast } from "sonner"
 interface ProjectDialogProps {
   children: React.ReactNode
   defaultValues?: Partial<ProjectFormData>
-  userIds?: Array<{ _id: string; email: string }>
   employeeIds?: Array<{ _id: string; name: string }>
 }
 
-export function ProjectDialog({ children, defaultValues, userIds = [], employeeIds = [] }: ProjectDialogProps) {
+export function ProjectDialog({ children, defaultValues, employeeIds = [] }: ProjectDialogProps) {
   const [open, setOpen] = useState(false)
-  const [mounted, setMounted] = useState(false)
   const router = useRouter()
   const isEdit = !!defaultValues?._id
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
 
   const handleSubmit = async (data: ProjectFormData) => {
     try {
@@ -58,10 +52,6 @@ export function ProjectDialog({ children, defaultValues, userIds = [], employeeI
     }
   }
 
-  if (!mounted) {
-    return <div suppressHydrationWarning>{children}</div>
-  }
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
@@ -78,7 +68,6 @@ export function ProjectDialog({ children, defaultValues, userIds = [], employeeI
           defaultValues={defaultValues}
           onSubmit={handleSubmit}
           onCancel={() => setOpen(false)}
-          userIds={userIds}
           employeeIds={employeeIds}
         />
       </DialogContent>

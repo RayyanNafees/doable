@@ -6,7 +6,7 @@ export const userSchema = z.object({
   persona: z.enum(['Software Developer', 'Product Manager', 'Team Leader', 'Other']).default('Other'),
   ikigai: z.string().optional(),
   psychology: z.object({
-    quizResults: z.record(z.any()).optional(),
+    quizResults: z.record(z.string(), z.any()).optional(),
     traits: z.array(z.string()).optional(),
     lastPsychUpdate: z.date().optional(),
   }).optional(),

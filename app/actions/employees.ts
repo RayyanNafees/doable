@@ -38,10 +38,11 @@ export async function createEmployee(data: EmployeeFormData): Promise<ActionResu
     const employee = await Employee.create(validated)
     revalidatePath("/employees")
     return { success: true, data: employee as unknown as EmployeeType }
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error creating employee:", error)
     if (error instanceof z.ZodError) {
-      return { success: false, error: error.errors[0].message }
+      const firstError = error.issues?.[0]?.message
+      return { success: false, error: firstError || "Validation error" }
     }
     return { success: false, error: "Failed to create employee" }
   }
@@ -57,10 +58,11 @@ export async function updateEmployee(id: string, data: Partial<EmployeeFormData>
     }
     revalidatePath("/employees")
     return { success: true, data: employee as unknown as EmployeeType }
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error updating employee:", error)
     if (error instanceof z.ZodError) {
-      return { success: false, error: error.errors[0].message }
+      const firstError = error.issues?.[0]?.message
+      return { success: false, error: firstError || "Validation error" }
     }
     return { success: false, error: "Failed to update employee" }
   }

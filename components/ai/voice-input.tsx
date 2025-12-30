@@ -30,7 +30,7 @@ export function VoiceInput() {
 
       mediaRecorder.current.start()
       setIsRecording(true)
-    } catch (err) {
+    } catch {
       toast.error("Could not access microphone")
     }
   }
@@ -45,30 +45,31 @@ export function VoiceInput() {
   const processAudio = async (blob: Blob) => {
     setIsProcessing(true)
     try {
-      // For actual Gemini audio, we would convert to base64 or upload
-      // For this demo, let's assume we transcribe text first or mock the transcription
-      // In a real implementation, we'd send the blob to a route that uses Gemini 1.5
-
       const formData = new FormData()
       formData.append("audio", blob)
+      formData.append("userContext", JSON.stringify({})) // Mock context for now, can be expanded
 
-      // MOCK: Sending to process-goal with a prompt for now
-      // Real would use Gemini's audio capability
       const response = await fetch("/api/ai/process-goal", {
         method: "POST",
-        body: JSON.stringify({
-          prompt: "Schedule a 2-hour coding session after lunch.",
-          userContext: {}
-        })
+        body: formData, // fetch automatically sets Content-Type to multipart/form-data
       })
 
       const data = await response.json()
       if (data.error) throw new Error(data.error)
 
-      toast.success(`Task Created: ${data.title}`)
+      toast.success(`Task Created: ${data.task.title}`)
+
+      // Play the audio response
+      if (data.audio) {
+        const audio = new Audio(`data:audio/wav;base64,${data.audio}`)
+        audio.play()
+      }
+
       router.refresh()
     } catch (err) {
-      toast.error("Failed to process audio")
+      console.error("Process Audio Error:", err)
+      const msg = err instanceof Error ? err.message : "Failed to process audio"
+      toast.error(msg)
     } finally {
       setIsProcessing(false)
     }

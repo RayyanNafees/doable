@@ -6,7 +6,6 @@ import { projectSchema, type ProjectFormData } from "@/lib/schemas/project"
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -27,11 +26,10 @@ interface ProjectFormProps {
   defaultValues?: Partial<ProjectFormData>
   onSubmit: (data: ProjectFormData) => Promise<void>
   onCancel?: () => void
-  userIds?: Array<{ _id: string; email: string }>
   employeeIds?: Array<{ _id: string; name: string }>
 }
 
-export function ProjectForm({ defaultValues, onSubmit, onCancel, userIds = [], employeeIds = [] }: ProjectFormProps) {
+export function ProjectForm({ defaultValues, onSubmit, onCancel, employeeIds = [] }: ProjectFormProps) {
   const form = useForm<ProjectFormData>({
     resolver: zodResolver(projectSchema),
     defaultValues: {
@@ -40,7 +38,7 @@ export function ProjectForm({ defaultValues, onSubmit, onCancel, userIds = [], e
       status: "Active",
       assignedEmployees: [],
       ...defaultValues,
-    },
+    } as any,
   })
 
   const handleSubmit = async (data: ProjectFormData) => {
@@ -51,31 +49,6 @@ export function ProjectForm({ defaultValues, onSubmit, onCancel, userIds = [], e
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        <FormField
-          control={form.control}
-          name="userId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>User</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a user" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {userIds.map((user) => (
-                    <SelectItem key={user._id} value={user._id}>
-                      {user.email}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
         <FormField
           control={form.control}
           name="title"
@@ -145,4 +118,3 @@ export function ProjectForm({ defaultValues, onSubmit, onCancel, userIds = [], e
     </Form>
   )
 }
-
