@@ -33,9 +33,10 @@ import { Loader } from "@/components/ai-elements/loader"
 export function ChatInterface() {
   const [input, setInput] = useState("")
 
-  const { messages, status, sendMessage, addToolOutput } = useChat({
+  const { messages, status, append, addToolResult } = useChat({
+
     api: "/api/ai/chat",
-    messages: [
+    initialMessages: [
       {
         id: "1",
         role: "assistant",
@@ -54,39 +55,32 @@ export function ChatInterface() {
           toast.success(`Task created: ${(args as { title: string }).title}`, {
             icon: <Sparkles className="h-4 w-4 text-yellow-500" />
           })
-          // Add tool output to continue the conversation
-          addToolOutput({
-            tool: toolName,
+          // Add tool result to continue the conversation
+          addToolResult({
             toolCallId,
-            output: { success: true, message: "Task created successfully" }
+            result: { success: true, message: "Task created successfully" }
           })
         } else {
           toast.error(result.error || "Failed to create task")
-          addToolOutput({
-            tool: toolName,
+          addToolResult({
             toolCallId,
-            state: "output-error",
-            errorText: result.error || "Failed to create task"
+            result: { success: false, error: result.error || "Failed to create task" }
           })
         }
       } catch (error) {
         toast.error("An unexpected error occurred")
-        addToolOutput({
-          tool: toolName,
+        addToolResult({
           toolCallId,
-          state: "output-error",
-          errorText: error instanceof Error ? error.message : "Unknown error"
+          result: { success: false, error: error instanceof Error ? error.message : "Unknown error" }
         })
       }
     }
   }
 
-  const handleToolRejection = (toolCallId: string, toolName: string) => {
-    addToolOutput({
-      tool: toolName,
+  const handleToolRejection = (toolCallId: string) => {
+    addToolResult({
       toolCallId,
-      state: "output-error",
-      errorText: "User cancelled the task creation"
+      result: { success: false, message: "User cancelled the task creation" }
     })
     toast.info("Task creation cancelled")
   }
@@ -95,7 +89,7 @@ export function ChatInterface() {
     e.preventDefault()
     if (!input.trim()) return
 
-    sendMessage({ text: input })
+    append({ role: 'user', content: input })
     setInput("")
   }
 
@@ -161,7 +155,7 @@ export function ChatInterface() {
                               <Check className="h-3.5 w-3.5" /> Approve
                             </button>
                             <button
-                              onClick={() => handleToolRejection(toolCallId, toolName)}
+                              onClick={() => handleToolRejection(toolCallId)}
                               className="px-4 flex items-center justify-center h-9 rounded-lg border border-border bg-background hover:bg-muted text-xs font-bold transition-all"
                             >
                               <X className="h-3.5 w-3.5" /> Skip
@@ -197,7 +191,7 @@ export function ChatInterface() {
           <PromptInput
             className="bg-muted/30 border border-border/40 hover:border-indigo-500/30 transition-all rounded-2xl overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500/20"
             onSubmit={(msg) => {
-              sendMessage({ text: msg.text })
+              append({ role: 'user', content: msg.text })
             }}
           >
             <PromptInputTextarea

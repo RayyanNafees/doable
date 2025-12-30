@@ -4,6 +4,7 @@ import { z } from "zod"
 import { revalidatePath } from "next/cache"
 import { User } from "@/lib/models/User"
 import { userSchema, type UserFormData } from "@/lib/schemas/user"
+import "@/lib/models/connect"
 import { ActionResult, User as UserType } from "@/lib/types"
 import { serialize } from "@/lib/utils"
 

@@ -4,6 +4,7 @@ import { z } from "zod"
 import { revalidatePath } from "next/cache"
 import { Task } from "@/lib/models/Task"
 import { taskSchema, type TaskFormData } from "@/lib/schemas/task"
+import "@/lib/models/connect"
 import { ActionResult, Task as TaskType } from "@/lib/types"
 import { google } from "@ai-sdk/google"
 import { generateObject } from "ai"
@@ -115,7 +116,7 @@ export async function createTask(data: TaskFormData): Promise<ActionResult<TaskT
       const firstError = error.issues?.[0]?.message
       return { success: false, error: firstError || "Validation error" }
     }
-    return { success: false, error: error.message || "Failed to create task" }
+    return { success: false, error: (error instanceof Error ? error.message : "Failed to create task") }
   }
 }
 
@@ -133,7 +134,7 @@ export async function updateTask(id: string, data: Partial<TaskFormData>): Promi
     if (error instanceof z.ZodError) {
       return { success: false, error: error.issues[0].message }
     }
-    return { success: false, error: error.message || "Failed to update task" }
+    return { success: false, error: (error instanceof Error ? error.message : "Failed to update task") }
   }
 }
 

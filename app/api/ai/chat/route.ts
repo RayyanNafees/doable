@@ -1,5 +1,5 @@
 import { google } from "@ai-sdk/google"
-import { streamText, tool } from "ai"
+import { streamText } from "ai"
 import { getTasks } from "@/app/actions/tasks"
 import { z } from "zod"
 
@@ -32,7 +32,7 @@ export async function POST(req: Request) {
         2. Task Creation: Use 'createTask' tool for goals.
       `,
       tools: {
-        createTask: tool({
+        createTask: {
           description: "Create a new task in the user's todo list.",
           inputSchema: z.object({
             title: z.string(),
@@ -46,11 +46,7 @@ export async function POST(req: Request) {
             ]).optional(),
             effortEstimateMins: z.number().optional(),
           }),
-          execute: async ({ title, description, priority, eisenhowerQuadrant, effortEstimateMins }) => {
-            // Tool execution logic - this would call your createTask action
-            return { success: true, message: `Task "${title}" created successfully` };
-          },
-        }),
+        },
       },
       experimental_telemetry: {
         isEnabled: true,
@@ -62,7 +58,7 @@ export async function POST(req: Request) {
       },
     })
 
-    return result.toTextStreamResponse()
+    return (result as any).toDataStreamResponse()
   } catch (error) {
     console.error("Chat AI Error:", error)
     return new Response(JSON.stringify({ error: "I'm having trouble thinking right now." }), {

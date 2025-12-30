@@ -4,6 +4,7 @@ import { z } from "zod"
 import { revalidatePath } from "next/cache"
 import { Project } from "@/lib/models/Project"
 import { projectSchema, type ProjectFormData } from "@/lib/schemas/project"
+import "@/lib/models/connect"
 import { ActionResult, Project as ProjectType } from "@/lib/types"
 import { getOrCreateDefaultUser } from "./users"
 import { serialize } from "@/lib/utils"
@@ -53,7 +54,7 @@ export async function createProject(data: ProjectFormData): Promise<ActionResult
       const firstError = error.issues?.[0]?.message
       return { success: false, error: firstError || "Validation error" }
     }
-    return { success: false, error: error.message || "Failed to create project" }
+    return { success: false, error: (error instanceof Error ? error.message : "Failed to create project") }
   }
 }
 
@@ -72,7 +73,7 @@ export async function updateProject(id: string, data: Partial<ProjectFormData>):
       const firstError = error.issues?.[0]?.message
       return { success: false, error: firstError || "Validation error" }
     }
-    return { success: false, error: error.message || "Failed to update project" }
+    return { success: false, error: (error instanceof Error ? error.message : "Failed to update project") }
   }
 }
 
