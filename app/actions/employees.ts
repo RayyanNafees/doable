@@ -6,10 +6,11 @@ import { Employee } from "@/lib/models/Employee"
 import { employeeSchema, type EmployeeFormData } from "@/lib/schemas/employee"
 import { ActionResult, Employee as EmployeeType } from "@/lib/types"
 import { serialize } from "@/lib/utils"
+import connectDB from "@/lib/models/connect"
 
 export async function getEmployees(): Promise<ActionResult<EmployeeType[]>> {
   try {
-
+    await connectDB()
     const employees = await Employee.find({}).lean()
     return { success: true, data: serialize(employees) as unknown as EmployeeType[] }
   } catch (error) {
@@ -20,7 +21,7 @@ export async function getEmployees(): Promise<ActionResult<EmployeeType[]>> {
 
 export async function getEmployeeById(id: string): Promise<ActionResult<EmployeeType>> {
   try {
-
+    await connectDB()
     const employee = await Employee.findById(id).lean()
     if (!employee) {
       return { success: false, error: "Employee not found" }
@@ -34,7 +35,7 @@ export async function getEmployeeById(id: string): Promise<ActionResult<Employee
 
 export async function createEmployee(data: EmployeeFormData): Promise<ActionResult<EmployeeType>> {
   try {
-
+    await connectDB()
     const validated = employeeSchema.parse(data)
     const employee = await Employee.create(validated)
     revalidatePath("/employees")
@@ -51,7 +52,7 @@ export async function createEmployee(data: EmployeeFormData): Promise<ActionResu
 
 export async function updateEmployee(id: string, data: Partial<EmployeeFormData>): Promise<ActionResult<EmployeeType>> {
   try {
-
+    await connectDB()
     const validated = employeeSchema.partial().parse(data)
     const employee = await Employee.findByIdAndUpdate(id, validated, { new: true })
     if (!employee) {
@@ -71,7 +72,7 @@ export async function updateEmployee(id: string, data: Partial<EmployeeFormData>
 
 export async function deleteEmployee(id: string): Promise<ActionResult<void>> {
   try {
-
+    await connectDB()
     const employee = await Employee.findByIdAndDelete(id)
     if (!employee) {
       return { success: false, error: "Employee not found" }
