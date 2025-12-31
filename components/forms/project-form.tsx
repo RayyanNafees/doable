@@ -2,6 +2,7 @@
 
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { Checkbox } from "@/components/ui/checkbox"
 import { projectSchema, type ProjectFormData } from "@/lib/schemas/project"
 import {
   Form,
@@ -26,9 +27,10 @@ interface ProjectFormProps {
   defaultValues?: Partial<ProjectFormData>
   onSubmit: (data: ProjectFormData) => Promise<void>
   onCancel?: () => void
+  employeeIds?: Array<{ _id: string; name: string }>
 }
 
-export function ProjectForm({ defaultValues, onSubmit, onCancel }: ProjectFormProps) {
+export function ProjectForm({ defaultValues, onSubmit, onCancel, employeeIds = [] }: ProjectFormProps) {
   const form = useForm<ProjectFormData>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(projectSchema) as any,
@@ -100,6 +102,57 @@ export function ProjectForm({ defaultValues, onSubmit, onCancel }: ProjectFormPr
                   <SelectItem value="Completed">Completed</SelectItem>
                 </SelectContent>
               </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="assignedEmployees"
+          render={() => (
+            <FormItem>
+              <div className="mb-4">
+                <FormLabel className="text-base">Assigned Employees</FormLabel>
+                <p className="text-sm text-muted-foreground">
+                  Select the employees to assign to this project.
+                </p>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                {employeeIds.map((employee) => (
+                  <FormField
+                    key={employee._id}
+                    control={form.control}
+                    name="assignedEmployees"
+                    render={({ field }) => {
+                      return (
+                        <FormItem
+                          key={employee._id}
+                          className="flex flex-row items-start space-x-3 space-y-0"
+                        >
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value?.includes(employee._id)}
+                              onCheckedChange={(checked) => {
+                                return checked
+                                  ? field.onChange([...(field.value || []), employee._id])
+                                  : field.onChange(
+                                    field.value?.filter(
+                                      (value: string) => value !== employee._id
+                                    )
+                                  )
+                              }}
+                            />
+                          </FormControl>
+                          <FormLabel className="font-normal">
+                            {employee.name}
+                          </FormLabel>
+                        </FormItem>
+                      )
+                    }}
+                  />
+                ))}
+              </div>
               <FormMessage />
             </FormItem>
           )}

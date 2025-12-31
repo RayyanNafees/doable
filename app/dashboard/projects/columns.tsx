@@ -27,9 +27,14 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 
-import { Project, User } from "@/lib/types"
+import { Project, User, Employee } from "@/lib/types"
 
-function ActionCell({ project }: { project: Project }) {
+interface ActionCellProps {
+  project: Project
+  employees: Employee[]
+}
+
+function ActionCell({ project, employees }: ActionCellProps) {
   const [mounted, setMounted] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const router = useRouter()
@@ -66,11 +71,14 @@ function ActionCell({ project }: { project: Project }) {
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <ProjectDialog defaultValues={{
-            ...project,
-            userId: typeof project.userId === 'object' ? project.userId._id : project.userId,
-            assignedEmployees: project.assignedEmployees?.map(e => typeof e === 'object' ? e._id : e) as string[]
-          }}>
+          <ProjectDialog
+            employeeIds={employees}
+            defaultValues={{
+              ...project,
+              userId: typeof project.userId === 'object' ? project.userId._id : project.userId,
+              assignedEmployees: project.assignedEmployees?.map(e => typeof e === 'object' ? e._id : e) as string[]
+            }}
+          >
             <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
               <Pencil className="mr-2 h-4 w-4" />
               Edit
@@ -106,7 +114,7 @@ function ActionCell({ project }: { project: Project }) {
   )
 }
 
-export const columns: ColumnDef<Project>[] = [
+export const columns = (employees: Employee[]): ColumnDef<Project>[] => [
   {
     accessorKey: "title",
     header: ({ column }) => {
@@ -152,6 +160,6 @@ export const columns: ColumnDef<Project>[] = [
   },
   {
     id: "actions",
-    cell: ({ row }) => <ActionCell project={row.original} />,
+    cell: ({ row }) => <ActionCell project={row.original} employees={employees} />,
   },
 ]

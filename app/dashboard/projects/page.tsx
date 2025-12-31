@@ -36,7 +36,7 @@ export default async function ProjectsManagePage() {
           </ProjectDialog>
         </header>
         <div className="rounded-xl border bg-card p-4 shadow-sm">
-          <DataTable columns={columns} data={projects} searchKey="title" />
+          <DataTable columns={columns(employees)} data={projects} searchKey="title" />
         </div>
       </div>
     </div>
