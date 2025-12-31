@@ -8,6 +8,10 @@
     "start": "next start",
     "lint": "eslint"
   },
+  "overrides": {
+    "react": "$react",
+    "react-dom": "$react-dom"
+  },
   "dependencies": {
     "@ai-sdk/google": "^3.0.1",
     "@ai-sdk/openai": "^3.0.1",
